@@ -58,7 +58,6 @@ INCLUDE_DIRECTORIES( "${CMAKE_SOURCE_DIR}/privateinclude" )
 AUX_SOURCE_DIRECTORY( "${CMAKE_SOURCE_DIR}/src" library_sources )
 
 
-
 ADD_LIBRARY( ${PROJECT_NAME} SHARED ${library_sources} )
 ADD_DEPENDENCIES( ${PROJECT_NAME} websocketpp ) # Make sure WebSocket++ is downloaded before trying to build
 target_link_libraries( ${PROJECT_NAME} ${Boost_LIBRARIES} )
@@ -67,3 +66,11 @@ target_link_libraries( ${PROJECT_NAME} ${OPENSSL_LIBRARIES} )
 install( TARGETS ${PROJECT_NAME} DESTINATION lib )
 install( DIRECTORY "${CMAKE_SOURCE_DIR}/include/" DESTINATION include )
 
+OPTION( BUILD_UNITTESTS "Build unit tests" ON )
+MESSAGE( STATUS "BUILD_UNITTESTS: ${BUILD_UNITTESTS}" )
+IF( BUILD_UNITTESTS )
+	AUX_SOURCE_DIRECTORY( "unitTests" unittests_sources )
+	AUX_SOURCE_DIRECTORY( "unitTests/impl" unittests_sources )
+	ADD_EXECUTABLE( unitTests.exe ${unittests_sources} )
+	TARGET_LINK_LIBRARIES( unitTests.exe ${PROJECT_NAME} )
+ENDIF()
