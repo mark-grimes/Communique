@@ -104,5 +104,30 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			std::this_thread::sleep_for( std::chrono::seconds(2) );
 			REQUIRE_NOTHROW( myServer.stop() );
 		}
+		WHEN( "I connect and disconnect several clients to a server" )
+		{
+			const size_t numberOfClients=5;
+
+			// Create several clients
+			std::vector<comm::Client> clients;
+			for( size_t index=0; index<numberOfClients; ++index ) clients.emplace_back();
+
+			REQUIRE_NOTHROW( myServer.listen( ++portNumber ) );
+			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+
+			// Connect all of the clients, and check that the server sees them
+			for( size_t index=0; index<clients.size(); ++index )
+			{
+				REQUIRE_NOTHROW( clients[index].connect( "ws://localhost:"+std::to_string(portNumber) ) );
+				CHECK( myServer.currentConnections().size()==index+1 );
+			}
+
+			// disconnect all the clients, and check that the server realises they're disconnected
+			for( size_t index=0; index<clients.size(); ++index )
+			{
+				REQUIRE_NOTHROW( clients[index].disconnect() );
+				CHECK( myServer.currentConnections().size()==clients.size()-index-1 );
+			}
+		}
 	}
 }
