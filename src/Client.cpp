@@ -103,13 +103,7 @@ void comm::Client::connect( const std::string& URI )
 
 void comm::Client::disconnect()
 {
-	if( pImple_->pConnection_.get()!=nullptr )
-	{
-		websocketpp::lib::error_code errorCode;
-		pImple_->pConnection_->close();
-
-		if( errorCode ) pImple_->client_.get_elog().write( websocketpp::log::alevel::app, errorCode.message() );
-	}
+	if( pImple_->pConnection_.get()!=nullptr ) pImple_->pConnection_->close();
 	if( pImple_->ioThread_.joinable() ) pImple_->ioThread_.join();
 }
 
