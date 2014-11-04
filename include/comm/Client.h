@@ -16,6 +16,7 @@ namespace comm
 	{
 	public:
 		Client();
+		Client( Client&& otherClient ) noexcept;
 		~Client();
 
 		void connect( const std::string& URI );

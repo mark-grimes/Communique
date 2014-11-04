@@ -50,11 +50,19 @@ comm::Client::Client()
 //	pImple_->client_.set_interrupt_handler( std::bind( &ClientPrivateMembers::on_interrupt, pImple_.get(), std::placeholders::_1 ) );
 }
 
+comm::Client::Client( Client&& otherClient ) noexcept
+	: pImple_( std::move(otherClient.pImple_) )
+{
+	// No operation, everything done in initialiser list
+}
+
 comm::Client::~Client()
 {
 	try
 	{
-		disconnect();
+		// If std::move is used then pImple_ can be null, in which
+		// case I don't want to do any cleanup.
+		if( pImple_ ) disconnect();
 	}
 	catch(...) { /* Make sure no exceptions propagate out */ }
 }
