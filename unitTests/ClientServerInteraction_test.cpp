@@ -119,6 +119,7 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			for( size_t index=0; index<clients.size(); ++index )
 			{
 				REQUIRE_NOTHROW( clients[index].connect( "ws://localhost:"+std::to_string(portNumber) ) );
+				std::this_thread::sleep_for( std::chrono::milliseconds(500) );
 				CHECK( myServer.currentConnections().size()==index+1 );
 			}
 
