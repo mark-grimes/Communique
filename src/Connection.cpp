@@ -76,11 +76,15 @@ comm::impl::Connection::connection_ptr& comm::impl::Connection::underlyingPointe
 
 void comm::impl::Connection::close()
 {
-	websocketpp::lib::error_code errorCode;
-	pConnection_->close( 0, "Had enough. Bye.", errorCode );
+	if( pConnection_->get_state()==websocketpp::session::state::open )
+	{
+		websocketpp::lib::error_code errorCode;
 
-	//if( errorCode ) pImple_->client_.get_elog().write( websocketpp::log::alevel::app, errorCode.message() );
-	if( errorCode ) std::cerr << "comm::impl::Connection::close() - " << errorCode.message() << std::endl;
+		pConnection_->close( websocketpp::close::status::normal, "Had enough. Bye.", errorCode );
+
+		//if( errorCode ) pImple_->client_.get_elog().write( websocketpp::log::alevel::app, errorCode.message() );
+		if( errorCode ) std::cerr << "comm::impl::Connection::close() - " << errorCode.message() << std::endl;
+	}
 }
 
 void comm::impl::Connection::on_message( websocketpp::connection_hdl hdl, comm::impl::Connection::message_ptr msg )
