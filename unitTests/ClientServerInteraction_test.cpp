@@ -8,6 +8,7 @@
 // Port gets tied up after each test, so use a global and increment it
 // so that each test uses a different port
 size_t portNumber=9008;
+const auto shortWait=std::chrono::milliseconds(50);
 
 SCENARIO( "Test that the Client and Server can interact properly", "[integration]" )
 {
@@ -19,10 +20,10 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 		WHEN( "I start a server listening and try and connect a client to it" )
 		{
 			REQUIRE_NOTHROW( myServer.listen( ++portNumber ) );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 
 			REQUIRE_NOTHROW( myClient.connect( "ws://localhost:"+std::to_string(portNumber) ) );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 
 			REQUIRE_NOTHROW( myClient.disconnect() );
 			REQUIRE_NOTHROW( myServer.stop() );
@@ -34,15 +35,14 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			std::string concatenatedRequestMessages; // Store all received info message in here
 			REQUIRE_NOTHROW( myServer.setDefaultRequestHandler( [&](const std::string& message){ concatenatedRequestMessages+=message; return "Answer is: "+message; } ) );
 
-			std::cout << "Starting to listen" << std::endl;
 			REQUIRE_NOTHROW( myServer.listen( ++portNumber ) );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 
 			REQUIRE_NOTHROW( myClient.connect( "ws://localhost:"+std::to_string(portNumber) ) );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 
 			myClient.sendInfo( "This is the first test" );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 			CHECK( concatenatedInfoMessages=="This is the first test" );
 			CHECK( concatenatedRequestMessages=="" );
 
@@ -59,19 +59,18 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			std::string concatenatedRequestMessages; // Store all received info message in here
 			REQUIRE_NOTHROW( myClient.setRequestHandler( [&](const std::string& message){ concatenatedRequestMessages+=message; return "Answer is: "+message; } ) );
 
-			std::cout << "Starting to listen" << std::endl;
 			REQUIRE_NOTHROW( myServer.listen( ++portNumber ) );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 
 			REQUIRE_NOTHROW( myClient.connect( "ws://localhost:"+std::to_string(portNumber) ) );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 
 
 			for( auto& pConnection : myServer.currentConnections() ) pConnection->sendInfo( "This is the first test" );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) ); // Allow 1/2 a second for the message to arrive
+			std::this_thread::sleep_for( shortWait ); // Allow 1/2 a second for the message to arrive
 			CHECK( concatenatedInfoMessages=="This is the first test" );
 			for( auto& pConnection : myServer.currentConnections() ) pConnection->sendInfo( "This is the second test" );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) ); // Allow 1/2 a second for the message to arrive
+			std::this_thread::sleep_for( shortWait ); // Allow 1/2 a second for the message to arrive
 			CHECK( concatenatedInfoMessages=="This is the first testThis is the second test" );
 			CHECK( concatenatedRequestMessages=="" );
 
@@ -88,15 +87,14 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			std::string concatenatedRequestMessages; // Store all received info message in here
 			REQUIRE_NOTHROW( myServer.setDefaultRequestHandler( [&](const std::string& message){ concatenatedRequestMessages+=message; return "Answer is: "+message; } ) );
 
-			std::cout << "Starting to listen" << std::endl;
 			REQUIRE_NOTHROW( myServer.listen( ++portNumber ) );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 
 			REQUIRE_NOTHROW( myClient.connect( "ws://localhost:"+std::to_string(portNumber) ) );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 
 			myClient.sendRequest( "This is the first test", [&](const std::string& message){concatenatedResponses+=message;} );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 			CHECK( concatenatedResponses=="Answer is: This is the first test" );
 			CHECK( concatenatedRequestMessages=="This is the first test" );
 
@@ -113,13 +111,13 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			for( size_t index=0; index<numberOfClients; ++index ) clients.emplace_back();
 
 			REQUIRE_NOTHROW( myServer.listen( ++portNumber ) );
-			std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+			std::this_thread::sleep_for( shortWait );
 
 			// Connect all of the clients, and check that the server sees them
 			for( size_t index=0; index<clients.size(); ++index )
 			{
 				REQUIRE_NOTHROW( clients[index].connect( "ws://localhost:"+std::to_string(portNumber) ) );
-				std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+				std::this_thread::sleep_for( shortWait );
 				CHECK( myServer.currentConnections().size()==index+1 );
 			}
 
