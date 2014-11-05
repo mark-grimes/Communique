@@ -1,0 +1,8 @@
+#
+# CMake configuration file to use Communique from other CMake projects.
+# Mark Grimes (kknb1056@gmail.com)
+# 05/Nov/2014
+#
+
+SET( Communique_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@" )
+SET( Communique_LIBRARIES "@CONF_LIBRARIES@" )

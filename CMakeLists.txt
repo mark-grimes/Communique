@@ -70,6 +70,15 @@ target_link_libraries( ${PROJECT_NAME} ${OPENSSL_LIBRARIES} )
 install( TARGETS ${PROJECT_NAME} DESTINATION lib )
 install( DIRECTORY "${CMAKE_SOURCE_DIR}/include/" DESTINATION include )
 
+#
+# Create the CommuniqueConfig.cmake file so that other projects
+# can use the library.
+#
+get_property( CONF_LIBRARIES TARGET ${PROJECT_NAME} PROPERTY LOCATION )
+set( CONF_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include" )
+configure_file( ${PROJECT_NAME}Config.cmake.in
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY )
+
 OPTION( BUILD_UNITTESTS "Build unit tests" ON )
 MESSAGE( STATUS "BUILD_UNITTESTS: ${BUILD_UNITTESTS}" )
 IF( BUILD_UNITTESTS )
