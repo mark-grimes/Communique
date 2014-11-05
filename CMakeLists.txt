@@ -32,6 +32,8 @@ INCLUDE_DIRECTORIES( "${SOURCE_DIR}" )
 #
 # Find and add boost to the include directories
 #
+SET( Boost_USE_MULTITHREADED )
+SET( Boost_USE_STATIC_LIBS ON )
 FIND_PACKAGE( Boost REQUIRED COMPONENTS system )
 #IF( NOT Boost_FOUND )
 #	MESSAGE( FATAL_ERROR "Boost wasn't found. If boost is in a non standard path try adding "
