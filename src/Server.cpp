@@ -22,7 +22,7 @@ namespace comm
 		mutable std::mutex currentConnectionsMutex_;
 
 		websocketpp::lib::shared_ptr<boost::asio::ssl::context> on_tls_init( websocketpp::connection_hdl hdl );
-		void on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg );
+		//void on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg );
 		void on_open( websocketpp::connection_hdl hdl );
 		void on_close( websocketpp::connection_hdl hdl );
 		void on_interrupt( websocketpp::connection_hdl hdl );
@@ -42,7 +42,7 @@ comm::Server::Server()
 	pImple_->server_.set_error_channels(websocketpp::log::elevel::none);
 	pImple_->server_.init_asio();
 	//pImple_->server_.set_tls_init_handler( std::bind( &ServerPrivateMembers::on_tls_init, pImple_.get(), std::placeholders::_1 ) );
-	pImple_->server_.set_message_handler( std::bind( &ServerPrivateMembers::on_message, pImple_.get(), std::placeholders::_1, std::placeholders::_2 ) );
+	//pImple_->server_.set_message_handler( std::bind( &ServerPrivateMembers::on_message, pImple_.get(), std::placeholders::_1, std::placeholders::_2 ) );
 	pImple_->server_.set_open_handler( std::bind( &ServerPrivateMembers::on_open, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.set_close_handler( std::bind( &ServerPrivateMembers::on_close, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.set_interrupt_handler( std::bind( &ServerPrivateMembers::on_interrupt, pImple_.get(), std::placeholders::_1 ) );
@@ -141,10 +141,10 @@ websocketpp::lib::shared_ptr<boost::asio::ssl::context> comm::ServerPrivateMembe
 	return pContext;
 }
 
-void comm::ServerPrivateMembers::on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg )
-{
-	std::cout << "Message is '" << msg->get_payload() << "'" << std::endl;
-}
+//void comm::ServerPrivateMembers::on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg )
+//{
+//	std::cout << "Message is '" << msg->get_payload() << "'" << std::endl;
+//}
 
 void comm::ServerPrivateMembers::on_open( websocketpp::connection_hdl hdl )
 {
@@ -154,8 +154,6 @@ void comm::ServerPrivateMembers::on_open( websocketpp::connection_hdl hdl )
 	// change the handler to these.
 	if( defaultInfoHandlerAdvanced_ ) currentConnections_.back()->setInfoHandler(defaultInfoHandlerAdvanced_);
 	if( defaultRequestHandlerAdvanced_ ) currentConnections_.back()->setRequestHandler(defaultRequestHandlerAdvanced_);
-
-	std::cout << "Now have " << currentConnections_.size() << " connections" << std::endl;
 }
 
 void comm::ServerPrivateMembers::on_close( websocketpp::connection_hdl hdl )
@@ -163,17 +161,14 @@ void comm::ServerPrivateMembers::on_close( websocketpp::connection_hdl hdl )
 	std::lock_guard<std::mutex> myMutex( currentConnectionsMutex_ );
 	auto pRawConnection=server_.get_con_from_hdl(hdl);
 	auto findResult=std::find_if( currentConnections_.begin(), currentConnections_.end(), [&pRawConnection](std::shared_ptr<comm::impl::Connection>& other){return pRawConnection==other->underlyingPointer();} );
-	if( findResult!=currentConnections_.end() )
-	{
-		std::cout << "Removing connection" << std::endl;
-		currentConnections_.erase( findResult );
-	}
+	if( findResult!=currentConnections_.end() ) currentConnections_.erase( findResult );
 	else std::cout << "Couldn't find connection to remove" << std::endl;
 
 }
 
 void comm::ServerPrivateMembers::on_interrupt( websocketpp::connection_hdl hdl )
 {
+	std::cout << "Connection has been interrupted" << std::endl;
 //	auto findResult=std::find_if( currentConnections_.begin(), currentConnections_.end(), [&hdl](websocketpp::connection_hdl& other){return !other.owner_before(hdl) && !hdl.owner_before(other);} );
 //	if( findResult!=currentConnections_.end() ) currentConnections_.erase( findResult );
 }

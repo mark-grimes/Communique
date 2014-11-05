@@ -30,9 +30,9 @@ namespace comm
 
 		std::shared_ptr<boost::asio::ssl::context> on_tls_init( websocketpp::connection_hdl hdl );
 //		void on_message( websocketpp::connection_hdl hdl, client_type::message_ptr msg );
-//		void on_open( websocketpp::connection_hdl hdl );
-//		void on_close( websocketpp::connection_hdl hdl );
-//		void on_interrupt( websocketpp::connection_hdl hdl );
+		void on_open( websocketpp::connection_hdl hdl );
+		void on_close( websocketpp::connection_hdl hdl );
+		void on_interrupt( websocketpp::connection_hdl hdl );
 	};
 }
 
@@ -45,9 +45,9 @@ comm::Client::Client()
 	pImple_->client_.init_asio();
 //	pImple_->client_.set_tls_init_handler( std::bind( &ClientPrivateMembers::on_tls_init, pImple_.get(), std::placeholders::_1 ) );
 //	pImple_->client_.set_message_handler( std::bind( &ClientPrivateMembers::on_message, pImple_.get(), std::placeholders::_1, std::placeholders::_2 ) );
-//	pImple_->client_.set_open_handler( std::bind( &ClientPrivateMembers::on_open, pImple_.get(), std::placeholders::_1 ) );
-//	pImple_->client_.set_close_handler( std::bind( &ClientPrivateMembers::on_close, pImple_.get(), std::placeholders::_1 ) );
-//	pImple_->client_.set_interrupt_handler( std::bind( &ClientPrivateMembers::on_interrupt, pImple_.get(), std::placeholders::_1 ) );
+	pImple_->client_.set_open_handler( std::bind( &ClientPrivateMembers::on_open, pImple_.get(), std::placeholders::_1 ) );
+	pImple_->client_.set_close_handler( std::bind( &ClientPrivateMembers::on_close, pImple_.get(), std::placeholders::_1 ) );
+	pImple_->client_.set_interrupt_handler( std::bind( &ClientPrivateMembers::on_interrupt, pImple_.get(), std::placeholders::_1 ) );
 }
 
 comm::Client::Client( Client&& otherClient ) noexcept
@@ -199,17 +199,15 @@ void comm::Client::setRequestHandler( std::function<std::string(const std::strin
 //	}
 //}
 //
-//void comm::ClientPrivateMembers::on_open( websocketpp::connection_hdl hdl )
-//{
-//	client_.send( hdl, "What day is it?", websocketpp::frame::opcode::TEXT );
-//}
-//
-//void comm::ClientPrivateMembers::on_close( websocketpp::connection_hdl hdl )
-//{
-//	std::cout << "Connection has closed" << std::endl;
-//}
-//
-//void comm::ClientPrivateMembers::on_interrupt( websocketpp::connection_hdl hdl )
-//{
-//	std::cout << "Connection has been interrupted" << std::endl;
-//}
+void comm::ClientPrivateMembers::on_open( websocketpp::connection_hdl hdl )
+{
+}
+
+void comm::ClientPrivateMembers::on_close( websocketpp::connection_hdl hdl )
+{
+}
+
+void comm::ClientPrivateMembers::on_interrupt( websocketpp::connection_hdl hdl )
+{
+	std::cout << "Connection has been interrupted" << std::endl;
+}

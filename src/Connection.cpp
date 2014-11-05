@@ -6,18 +6,18 @@ comm::impl::Connection::Connection( connection_ptr pConnection )
 	: pConnection_(pConnection)
 {
 	pConnection_->set_message_handler( std::bind( &comm::impl::Connection::on_message, this, std::placeholders::_1, std::placeholders::_2 ) );
-	pConnection_->set_open_handler( std::bind( &comm::impl::Connection::on_open, this, std::placeholders::_1 ) );
-	pConnection_->set_close_handler( std::bind( &comm::impl::Connection::on_close, this, std::placeholders::_1 ) );
-	pConnection_->set_interrupt_handler( std::bind( &comm::impl::Connection::on_interrupt, this, std::placeholders::_1 ) );
+//	pConnection_->set_open_handler( std::bind( &comm::impl::Connection::on_open, this, std::placeholders::_1 ) );
+//	pConnection_->set_close_handler( std::bind( &comm::impl::Connection::on_close, this, std::placeholders::_1 ) );
+//	pConnection_->set_interrupt_handler( std::bind( &comm::impl::Connection::on_interrupt, this, std::placeholders::_1 ) );
 }
 
 comm::impl::Connection::Connection( connection_ptr pConnection, std::function<void(const std::string&)>& infoHandler, std::function<std::string(const std::string&)>& requestHandler )
 	: pConnection_(pConnection)
 {
 	pConnection_->set_message_handler( std::bind( &comm::impl::Connection::on_message, this, std::placeholders::_1, std::placeholders::_2 ) );
-	pConnection_->set_open_handler( std::bind( &comm::impl::Connection::on_open, this, std::placeholders::_1 ) );
-	pConnection_->set_close_handler( std::bind( &comm::impl::Connection::on_close, this, std::placeholders::_1 ) );
-	pConnection_->set_interrupt_handler( std::bind( &comm::impl::Connection::on_interrupt, this, std::placeholders::_1 ) );
+//	pConnection_->set_open_handler( std::bind( &comm::impl::Connection::on_open, this, std::placeholders::_1 ) );
+//	pConnection_->set_close_handler( std::bind( &comm::impl::Connection::on_close, this, std::placeholders::_1 ) );
+//	pConnection_->set_interrupt_handler( std::bind( &comm::impl::Connection::on_interrupt, this, std::placeholders::_1 ) );
 	setInfoHandler( infoHandler );
 	setRequestHandler( requestHandler );
 }
@@ -155,17 +155,17 @@ void comm::impl::Connection::on_message( websocketpp::connection_hdl hdl, comm::
 	}
 }
 
-void comm::impl::Connection::on_open( websocketpp::connection_hdl hdl )
-{
-
-}
-
-void comm::impl::Connection::on_close( websocketpp::connection_hdl hdl )
-{
-
-}
-
-void comm::impl::Connection::on_interrupt( websocketpp::connection_hdl hdl )
-{
-
-}
+//void comm::impl::Connection::on_open( websocketpp::connection_hdl hdl )
+//{
+//
+//}
+//
+//void comm::impl::Connection::on_close( websocketpp::connection_hdl hdl )
+//{
+//
+//}
+//
+//void comm::impl::Connection::on_interrupt( websocketpp::connection_hdl hdl )
+//{
+//
+//}

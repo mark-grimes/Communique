@@ -65,9 +65,9 @@ namespace comm
 			// All the event handlers
 			//
 			void on_message( websocketpp::connection_hdl hdl, message_ptr msg );
-			void on_open( websocketpp::connection_hdl hdl );
-			void on_close( websocketpp::connection_hdl hdl );
-			void on_interrupt( websocketpp::connection_hdl hdl );
+//			void on_open( websocketpp::connection_hdl hdl );
+//			void on_close( websocketpp::connection_hdl hdl );
+//			void on_interrupt( websocketpp::connection_hdl hdl );
 		};
 
 	} // end of namespace impl
