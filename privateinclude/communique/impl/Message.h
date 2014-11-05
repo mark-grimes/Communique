@@ -1,5 +1,5 @@
-#ifndef comm_impl_Message_h
-#define comm_impl_Message_h
+#ifndef communique_impl_Message_h
+#define communique_impl_Message_h
 
 #include <functional>
 
@@ -7,7 +7,7 @@
 #include <websocketpp/connection.hpp>
 #include <websocketpp/config/asio.hpp>
 
-namespace comm
+namespace communique
 {
 
 	namespace impl
@@ -44,6 +44,6 @@ namespace comm
 		};
 
 	} // end of namespace impl
-} // end of namespace comm
+} // end of namespace communique
 
-#endif // end of ifndef comm_impl_Message_h
+#endif // end of ifndef communique_impl_Message_h

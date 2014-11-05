@@ -1,11 +1,11 @@
-#ifndef comm_impl_UniqueTokenStorage_h
-#define comm_impl_UniqueTokenStorage_h
+#ifndef communique_impl_UniqueTokenStorage_h
+#define communique_impl_UniqueTokenStorage_h
 
 #include <list>
 #include <mutex>
 #include <iostream>
 
-namespace comm
+namespace communique
 {
 
 	namespace impl
@@ -44,16 +44,16 @@ namespace comm
 		};
 
 	} // end of namespace impl
-} // end of namespace comm
+} // end of namespace communique
 
 template<class T_Element,class T_Token>
-comm::impl::UniqueTokenStorage<T_Element,T_Token>::UniqueTokenStorage()
+communique::impl::UniqueTokenStorage<T_Element,T_Token>::UniqueTokenStorage()
 {
 
 }
 
 template<class T_Element,class T_Token>
-T_Token comm::impl::UniqueTokenStorage<T_Element,T_Token>::store( const T_Element& newElement )
+T_Token communique::impl::UniqueTokenStorage<T_Element,T_Token>::store( const T_Element& newElement )
 {
 	std::lock_guard<std::mutex> guard(lockMutex_);
 
@@ -66,7 +66,7 @@ T_Token comm::impl::UniqueTokenStorage<T_Element,T_Token>::store( const T_Elemen
 }
 
 template<class T_Element,class T_Token>
-T_Token comm::impl::UniqueTokenStorage<T_Element,T_Token>::store( const T_Element&& newElement )
+T_Token communique::impl::UniqueTokenStorage<T_Element,T_Token>::store( const T_Element&& newElement )
 {
 	std::lock_guard<std::mutex> guard(lockMutex_);
 
@@ -79,16 +79,16 @@ T_Token comm::impl::UniqueTokenStorage<T_Element,T_Token>::store( const T_Elemen
 }
 
 template<class T_Element,class T_Token>
-T_Element comm::impl::UniqueTokenStorage<T_Element,T_Token>::retrieve( const T_Token& token )
+T_Element communique::impl::UniqueTokenStorage<T_Element,T_Token>::retrieve( const T_Token& token )
 {
 	//std::lock_guard<std::mutex> guard(lockMutex_);
 	T_Element returnValue;
-	if( !retrieve( token, returnValue ) ) throw std::runtime_error( "comm::impl::UniqueTokenStorage::retrieve couldn't find token" );
+	if( !retrieve( token, returnValue ) ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::retrieve couldn't find token" );
 	return returnValue;
 }
 
 template<class T_Element,class T_Token>
-bool comm::impl::UniqueTokenStorage<T_Element,T_Token>::retrieve( const T_Token& token, T_Element& returnValue ) noexcept
+bool communique::impl::UniqueTokenStorage<T_Element,T_Token>::retrieve( const T_Token& token, T_Element& returnValue ) noexcept
 {
 	std::lock_guard<std::mutex> guard(lockMutex_);
 
@@ -107,7 +107,7 @@ bool comm::impl::UniqueTokenStorage<T_Element,T_Token>::retrieve( const T_Token&
 }
 
 template<class T_Element,class T_Token>
-std::pair<T_Token,typename std::list< std::pair<T_Token,T_Element> >::iterator> comm::impl::UniqueTokenStorage<T_Element,T_Token>::getFreeToken()
+std::pair<T_Token,typename std::list< std::pair<T_Token,T_Element> >::iterator> communique::impl::UniqueTokenStorage<T_Element,T_Token>::getFreeToken()
 {
 	// Don't lock - assume this has already been done by the callee.
 
@@ -136,7 +136,7 @@ std::pair<T_Token,typename std::list< std::pair<T_Token,T_Element> >::iterator> 
 					if( token!=iEntry->first ) break;
 				}
 				// Make sure I was able to find free space
-				if( iEntry==container_.end() ) throw std::runtime_error( "comm::impl::UniqueTokenStorage::store couldn't find free space" );
+				if( iEntry==container_.end() ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::store couldn't find free space" );
 				return std::make_pair( token, iEntry );
 			} // end of "else" for "if can't decrease the first token"
 		} // end of "else" for "if can't increase the last token"
@@ -144,4 +144,4 @@ std::pair<T_Token,typename std::list< std::pair<T_Token,T_Element> >::iterator> 
 }
 
 
-#endif // end of ifndef comm_impl_UniqueTokenStorage_h
+#endif // end of ifndef communique_impl_UniqueTokenStorage_h

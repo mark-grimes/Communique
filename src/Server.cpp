@@ -1,16 +1,16 @@
-#include "comm/Server.h"
+#include "communique/Server.h"
 
 #define _WEBSOCKETPP_CPP11_STL_ // Make sure websocketpp uses c++11 features in preference to boost ones
 #include <websocketpp/server.hpp>
 #include <websocketpp/config/asio.hpp>
 #include <list>
-#include "comm/impl/Connection.h"
+#include "communique/impl/Connection.h"
 
 
 //
 // Declaration of the pimple
 //
-namespace comm
+namespace communique
 {
 	class ServerPrivateMembers
 	{
@@ -18,7 +18,7 @@ namespace comm
 		typedef websocketpp::server<websocketpp::config::asio> server_type;
 		server_type server_;
 		std::thread ioThread_;
-		std::list< std::shared_ptr<comm::impl::Connection> > currentConnections_;
+		std::list< std::shared_ptr<communique::impl::Connection> > currentConnections_;
 		mutable std::mutex currentConnectionsMutex_;
 
 		websocketpp::lib::shared_ptr<boost::asio::ssl::context> on_tls_init( websocketpp::connection_hdl hdl );
@@ -28,13 +28,13 @@ namespace comm
 		void on_interrupt( websocketpp::connection_hdl hdl );
 
 		std::function<void(const std::string&)> defaultInfoHandler_;
-		std::function<void(const std::string&,comm::IConnection*)> defaultInfoHandlerAdvanced_;
+		std::function<void(const std::string&,communique::IConnection*)> defaultInfoHandlerAdvanced_;
 		std::function<std::string(const std::string&)> defaultRequestHandler_;
-		std::function<std::string(const std::string&,comm::IConnection*)> defaultRequestHandlerAdvanced_;
+		std::function<std::string(const std::string&,communique::IConnection*)> defaultRequestHandlerAdvanced_;
 	};
 }
 
-comm::Server::Server()
+communique::Server::Server()
 	: pImple_( new ServerPrivateMembers )
 {
 	pImple_->server_.set_access_channels(websocketpp::log::alevel::none);
@@ -48,7 +48,7 @@ comm::Server::Server()
 	pImple_->server_.set_interrupt_handler( std::bind( &ServerPrivateMembers::on_interrupt, pImple_.get(), std::placeholders::_1 ) );
 }
 
-comm::Server::~Server()
+communique::Server::~Server()
 {
 	try
 	{
@@ -57,7 +57,7 @@ comm::Server::~Server()
 	catch(...) { /* Make sure no exceptions propagate out */ }
 }
 
-bool comm::Server::listen( size_t port )
+bool communique::Server::listen( size_t port )
 {
 	try
 	{
@@ -76,11 +76,11 @@ bool comm::Server::listen( size_t port )
 	}
 	catch(...)
 	{
-		throw std::runtime_error( "Unknown exception in comm::Server::listen" );
+		throw std::runtime_error( "Unknown exception in communique::Server::listen" );
 	}
 }
 
-void comm::Server::stop()
+void communique::Server::stop()
 {
 	if( pImple_->server_.is_listening() ) pImple_->server_.stop_listening();
 
@@ -96,37 +96,37 @@ void comm::Server::stop()
 	if( pImple_->ioThread_.joinable() ) pImple_->ioThread_.join();
 }
 
-void comm::Server::setDefaultInfoHandler( std::function<void(const std::string&)> infoHandler )
+void communique::Server::setDefaultInfoHandler( std::function<void(const std::string&)> infoHandler )
 {
 	pImple_->defaultInfoHandler_=infoHandler;
 	pImple_->defaultInfoHandlerAdvanced_=nullptr;
 }
 
-void comm::Server::setDefaultInfoHandler( std::function<void(const std::string&,comm::IConnection*)> infoHandler )
+void communique::Server::setDefaultInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler )
 {
 	pImple_->defaultInfoHandler_=nullptr;
 	pImple_->defaultInfoHandlerAdvanced_=infoHandler;
 }
 
-void comm::Server::setDefaultRequestHandler( std::function<const std::string(const std::string&)> requestHandler )
+void communique::Server::setDefaultRequestHandler( std::function<const std::string(const std::string&)> requestHandler )
 {
 	pImple_->defaultRequestHandler_=requestHandler;
 	pImple_->defaultRequestHandlerAdvanced_=nullptr;
 }
 
-void comm::Server::setDefaultRequestHandler( std::function<const std::string(const std::string&,comm::IConnection*)> requestHandler )
+void communique::Server::setDefaultRequestHandler( std::function<const std::string(const std::string&,communique::IConnection*)> requestHandler )
 {
 	pImple_->defaultRequestHandler_=nullptr;
 	pImple_->defaultRequestHandlerAdvanced_=requestHandler;
 }
 
-std::vector<std::shared_ptr<comm::IConnection> > comm::Server::currentConnections()
+std::vector<std::shared_ptr<communique::IConnection> > communique::Server::currentConnections()
 {
 	std::lock_guard<std::mutex> myMutex( pImple_->currentConnectionsMutex_ );
-	return std::vector<std::shared_ptr<comm::IConnection> >( pImple_->currentConnections_.begin(), pImple_->currentConnections_.end() );
+	return std::vector<std::shared_ptr<communique::IConnection> >( pImple_->currentConnections_.begin(), pImple_->currentConnections_.end() );
 }
 
-websocketpp::lib::shared_ptr<boost::asio::ssl::context> comm::ServerPrivateMembers::on_tls_init( websocketpp::connection_hdl hdl )
+websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::ServerPrivateMembers::on_tls_init( websocketpp::connection_hdl hdl )
 {
 	std::cout << "init_tls called" << std::endl;
 	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
@@ -141,32 +141,32 @@ websocketpp::lib::shared_ptr<boost::asio::ssl::context> comm::ServerPrivateMembe
 	return pContext;
 }
 
-//void comm::ServerPrivateMembers::on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg )
+//void communique::ServerPrivateMembers::on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg )
 //{
 //	std::cout << "Message is '" << msg->get_payload() << "'" << std::endl;
 //}
 
-void comm::ServerPrivateMembers::on_open( websocketpp::connection_hdl hdl )
+void communique::ServerPrivateMembers::on_open( websocketpp::connection_hdl hdl )
 {
 	std::lock_guard<std::mutex> myMutex( currentConnectionsMutex_ );
-	currentConnections_.emplace_back( new comm::impl::Connection( server_.get_con_from_hdl(hdl), defaultInfoHandler_, defaultRequestHandler_ ) );
+	currentConnections_.emplace_back( new communique::impl::Connection( server_.get_con_from_hdl(hdl), defaultInfoHandler_, defaultRequestHandler_ ) );
 	// If "advanced" handlers have beed set (just has IConnection* as additional argument)
 	// change the handler to these.
 	if( defaultInfoHandlerAdvanced_ ) currentConnections_.back()->setInfoHandler(defaultInfoHandlerAdvanced_);
 	if( defaultRequestHandlerAdvanced_ ) currentConnections_.back()->setRequestHandler(defaultRequestHandlerAdvanced_);
 }
 
-void comm::ServerPrivateMembers::on_close( websocketpp::connection_hdl hdl )
+void communique::ServerPrivateMembers::on_close( websocketpp::connection_hdl hdl )
 {
 	std::lock_guard<std::mutex> myMutex( currentConnectionsMutex_ );
 	auto pRawConnection=server_.get_con_from_hdl(hdl);
-	auto findResult=std::find_if( currentConnections_.begin(), currentConnections_.end(), [&pRawConnection](std::shared_ptr<comm::impl::Connection>& other){return pRawConnection==other->underlyingPointer();} );
+	auto findResult=std::find_if( currentConnections_.begin(), currentConnections_.end(), [&pRawConnection](std::shared_ptr<communique::impl::Connection>& other){return pRawConnection==other->underlyingPointer();} );
 	if( findResult!=currentConnections_.end() ) currentConnections_.erase( findResult );
 	else std::cout << "Couldn't find connection to remove" << std::endl;
 
 }
 
-void comm::ServerPrivateMembers::on_interrupt( websocketpp::connection_hdl hdl )
+void communique::ServerPrivateMembers::on_interrupt( websocketpp::connection_hdl hdl )
 {
 	std::cout << "Connection has been interrupted" << std::endl;
 //	auto findResult=std::find_if( currentConnections_.begin(), currentConnections_.end(), [&hdl](websocketpp::connection_hdl& other){return !other.owner_before(hdl) && !hdl.owner_before(other);} );

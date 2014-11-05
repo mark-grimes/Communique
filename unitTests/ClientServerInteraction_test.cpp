@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
-#include <comm/Client.h>
-#include <comm/Server.h>
+#include <communique/Client.h>
+#include <communique/Server.h>
 #include <thread>
 #include <iostream>
 
@@ -14,8 +14,8 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 {
 	GIVEN( "A Client and server" )
 	{
-		comm::Server myServer;
-		comm::Client myClient;
+		communique::Server myServer;
+		communique::Client myClient;
 
 		WHEN( "I start a server listening and try and connect a client to it" )
 		{
@@ -107,7 +107,7 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			const size_t numberOfClients=5;
 
 			// Create several clients
-			std::vector<comm::Client> clients;
+			std::vector<communique::Client> clients;
 			for( size_t index=0; index<numberOfClients; ++index ) clients.emplace_back();
 
 			REQUIRE_NOTHROW( myServer.listen( ++portNumber ) );

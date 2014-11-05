@@ -1,7 +1,7 @@
-#ifndef comm_impl_Connection_h
-#define comm_impl_Connection_h
+#ifndef communique_impl_Connection_h
+#define communique_impl_Connection_h
 
-#include <comm/IConnection.h>
+#include <communique/IConnection.h>
 #include <functional>
 #include <list>
 
@@ -9,10 +9,10 @@
 #include <websocketpp/connection.hpp>
 #include <websocketpp/config/asio.hpp>
 
-#include "comm/impl/Message.h"
-#include "comm/impl/UniqueTokenStorage.h"
+#include "communique/impl/Message.h"
+#include "communique/impl/UniqueTokenStorage.h"
 
-namespace comm
+namespace communique
 {
 
 	namespace impl
@@ -26,7 +26,7 @@ namespace comm
 		 * @author Mark Grimes (kknb1056@gmail.com)
 		 * @date 30/Sep/2014
 		 */
-		class Connection : public comm::IConnection
+		class Connection : public communique::IConnection
 		{
 		public:
 			typedef websocketpp::connection<websocketpp::config::asio>::ptr connection_ptr;
@@ -40,26 +40,26 @@ namespace comm
 			virtual void sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler ) override;
 			virtual void sendInfo( const std::string& message ) override;
 			virtual void setInfoHandler( std::function<void(const std::string&)> infoHandler ) override;
-			virtual void setInfoHandler( std::function<void(const std::string&,comm::IConnection*)> infoHandler ) override;
+			virtual void setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler ) override;
 			virtual void setRequestHandler( std::function<std::string(const std::string&)> requestHandler ) override;
-			virtual void setRequestHandler( std::function<std::string(const std::string&,comm::IConnection*)> requestHandler ) override;
+			virtual void setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler ) override;
 
 			connection_ptr& underlyingPointer();
 			void close();
 		private:
 			connection_ptr pConnection_;
 			std::function<void(const std::string&)> infoHandler_; ///< Only one info handler will be non-null
-			std::function<void(const std::string&,comm::IConnection*)> infoHandlerAdvanced_;
+			std::function<void(const std::string&,communique::IConnection*)> infoHandlerAdvanced_;
 			std::function<std::string(const std::string&)> requestHandler_; ///< Only one request handler will be non-null
-			std::function<std::string(const std::string&,comm::IConnection*)> requestHandlerAdvanced_;
+			std::function<std::string(const std::string&,communique::IConnection*)> requestHandlerAdvanced_;
 			/// This keeps track of the user references and associated handler for all requests
 			/// sent but without a response received.
-//			std::list< std::pair<comm::impl::Message::UserReference,std::function<void(const std::string&)> > > responseHandlers_;
+//			std::list< std::pair<communique::impl::Message::UserReference,std::function<void(const std::string&)> > > responseHandlers_;
 			/// This is used as the user reference for the next request. If it gets close
 			/// to overflowing then responseHandlers_ is checked for free numbers. If ever
 			/// there are no responses pending it gets reset to zero.
-//			std::atomic<comm::impl::Message::UserReference> availableUserReference_;
-			comm::impl::UniqueTokenStorage<std::function<void(const std::string&)>,comm::impl::Message::UserReference> responseHandlers_;
+//			std::atomic<communique::impl::Message::UserReference> availableUserReference_;
+			communique::impl::UniqueTokenStorage<std::function<void(const std::string&)>,communique::impl::Message::UserReference> responseHandlers_;
 
 			//
 			// All the event handlers
@@ -71,6 +71,6 @@ namespace comm
 		};
 
 	} // end of namespace impl
-} // end of namespace comm
+} // end of namespace communique
 
-#endif // end of ifndef comm_impl_Connection_h
+#endif // end of ifndef communique_impl_Connection_h

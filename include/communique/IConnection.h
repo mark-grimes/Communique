@@ -1,9 +1,9 @@
-#ifndef comm_IConnection_h
-#define comm_IConnection_h
+#ifndef communique_IConnection_h
+#define communique_IConnection_h
 
 #include <functional>
 
-namespace comm
+namespace communique
 {
 
 	/** @brief Abstract interface to connections between a client and a server.
@@ -33,13 +33,13 @@ namespace comm
 
 		/** @brief Sets the function that will be notified when information comes in (no response required) */
 		virtual void setInfoHandler( std::function<void(const std::string&)> infoHandler ) = 0;
-		virtual void setInfoHandler( std::function<void(const std::string&,comm::IConnection*)> infoHandler ) = 0;
+		virtual void setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler ) = 0;
 
 		/** @brief Sets the function that will be notified when requests come in (response required) */
 		virtual void setRequestHandler( std::function<std::string(const std::string&)> requestHandler ) = 0;
-		virtual void setRequestHandler( std::function<std::string(const std::string&,comm::IConnection*)> requestHandler ) = 0;
+		virtual void setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler ) = 0;
 	};
 
-} // end of namespace comm
+} // end of namespace communique
 
-#endif // end of ifndef comm_IConnection_h
+#endif // end of ifndef communique_IConnection_h

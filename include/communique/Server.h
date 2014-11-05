@@ -1,5 +1,5 @@
-#ifndef comm_Server_h
-#define comm_Server_h
+#ifndef communique_Server_h
+#define communique_Server_h
 
 #include <memory>
 #include <functional>
@@ -8,12 +8,12 @@
 //
 // Forward declarations
 //
-namespace comm
+namespace communique
 {
 	class IConnection;
 }
 
-namespace comm
+namespace communique
 {
 
 	/** @brief Class that handles communication from the local objects to the outside world.
@@ -34,16 +34,16 @@ namespace comm
 		void stop();
 
 		void setDefaultInfoHandler( std::function<void(const std::string&)> infoHandler );
-		void setDefaultInfoHandler( std::function<void(const std::string&,comm::IConnection*)> infoHandler );
+		void setDefaultInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler );
 		void setDefaultRequestHandler( std::function<const std::string(const std::string&)> requestHandler );
-		void setDefaultRequestHandler( std::function<const std::string(const std::string&,comm::IConnection*)> requestHandler );
+		void setDefaultRequestHandler( std::function<const std::string(const std::string&,communique::IConnection*)> requestHandler );
 
-		std::vector<std::shared_ptr<comm::IConnection> > currentConnections();
+		std::vector<std::shared_ptr<communique::IConnection> > currentConnections();
 	private:
 		/// Pimple idiom to hide the transport details
 		std::unique_ptr<class ServerPrivateMembers> pImple_;
 	};
 
-} // end of namespace comm
+} // end of namespace communique
 
-#endif // end of ifndef comm_Server_h
+#endif // end of ifndef communique_Server_h

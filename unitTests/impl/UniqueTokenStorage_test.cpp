@@ -1,4 +1,4 @@
-#include <comm/impl/UniqueTokenStorage.h>
+#include <communique/impl/UniqueTokenStorage.h>
 #include "../catch.hpp"
 
 #include <iostream>
@@ -9,7 +9,7 @@ SCENARIO( "Test that UniqueTokenStorage behaves as expected", "[UniqueTokenStora
 	GIVEN( "A UniqueTokenStorage<uint64_t,uint32_t> instance" )
 	{
 		// Use a 32 bit unsigned int as the tokens, and a normal unsigned int for the values
-		comm::impl::UniqueTokenStorage<uint64_t,uint8_t> myTokenStorage;
+		communique::impl::UniqueTokenStorage<uint64_t,uint8_t> myTokenStorage;
 
 		WHEN( "I try to retrieve from an empty container" )
 		{

@@ -1,9 +1,9 @@
-#ifndef comm_Exceptions_h
-#define comm_Exceptions_h
+#ifndef communique_Exceptions_h
+#define communique_Exceptions_h
 
 #include <exception>
 
-namespace comm
+namespace communique
 {
 
 	/** @brief Base class for all exception thrown by Communique
@@ -17,6 +17,6 @@ namespace comm
 		virtual ~Exception() {}
 	};
 
-} // end of namespace comm
+} // end of namespace communique
 
-#endif // end of ifndef comm_Exceptions_h
+#endif // end of ifndef communique_Exceptions_h

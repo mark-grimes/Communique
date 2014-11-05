@@ -1,10 +1,10 @@
-#ifndef comm_Client_h
-#define comm_Client_h
+#ifndef communique_Client_h
+#define communique_Client_h
 
 #include <memory>
-#include <comm/IConnection.h>
+#include <communique/IConnection.h>
 
-namespace comm
+namespace communique
 {
 
 	/** @brief Class that handles communication to a remote server
@@ -12,7 +12,7 @@ namespace comm
 	 * @author Mark Grimes (kknb1056@gmail.com)
 	 * @date 30/Sep/2014
 	 */
-	class Client : public comm::IConnection
+	class Client : public communique::IConnection
 	{
 	public:
 		Client();
@@ -24,14 +24,14 @@ namespace comm
 		virtual void sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler ) override;
 		virtual void sendInfo( const std::string& message ) override;
 		virtual void setInfoHandler( std::function<void(const std::string&)> infoHandler ) override;
-		virtual void setInfoHandler( std::function<void(const std::string&,comm::IConnection*)> infoHandler ) override;
+		virtual void setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler ) override;
 		virtual void setRequestHandler( std::function<std::string(const std::string&)> requestHandler ) override;
-		virtual void setRequestHandler( std::function<std::string(const std::string&,comm::IConnection*)> requestHandler ) override;
+		virtual void setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler ) override;
 	private:
 		/// Pimple idiom to hide the transport details
 		std::unique_ptr<class ClientPrivateMembers> pImple_;
 	};
 
-} // end of namespace comm
+} // end of namespace communique
 
-#endif // end of ifndef comm_Client_h
+#endif // end of ifndef communique_Client_h

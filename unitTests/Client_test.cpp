@@ -1,6 +1,6 @@
 #include "catch.hpp"
 
-#include <comm/Client.h>
+#include <communique/Client.h>
 #include <thread>
 #include <iostream>
 
@@ -8,7 +8,7 @@ SCENARIO( "Test that Client behaves as expected" )
 {
 	GIVEN( "A Client" )
 	{
-		comm::Client myClient;
+		communique::Client myClient;
 
 		WHEN( "I try to connect to ws://echo.websocket.org" )
 		{

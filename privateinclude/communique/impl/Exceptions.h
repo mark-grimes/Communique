@@ -1,10 +1,10 @@
-#ifndef comm_impl_Exceptions_h
-#define comm_impl_Exceptions_h
+#ifndef communique_impl_Exceptions_h
+#define communique_impl_Exceptions_h
 
-#include <comm/Exceptions.h>
+#include <communique/Exceptions.h>
 #include <string>
 
-namespace comm
+namespace communique
 {
 
 	namespace impl
@@ -14,7 +14,7 @@ namespace comm
 		 * @author Mark Grimes (kknb1056@gmail.com)
 		 * @date 30/Sep/2014
 		 */
-		class Exception : public comm::Exception
+		class Exception : public communique::Exception
 		{
 		public:
 			Exception( const std::string& what );
@@ -25,6 +25,6 @@ namespace comm
 		};
 
 	} // end of namespace impl
-} // end of namespace comm
+} // end of namespace communique
 
-#endif // end of ifndef comm_impl_Exceptions_h
+#endif // end of ifndef communique_impl_Exceptions_h
