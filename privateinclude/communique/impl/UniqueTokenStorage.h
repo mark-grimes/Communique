@@ -40,6 +40,10 @@ namespace communique
 			 * Throws an exception if the token does not exist.*/
 			T_Element& at( const T_Token& token );
 			const T_Element& at( const T_Token& token ) const;
+			/** @brief Fills the supplied pointer with the address of the object.
+			 * If the token doesn't exist returns false*/
+			bool at( const T_Token& token, T_Element*& pReturnValue ) noexcept;
+			bool at( const T_Token& token, const T_Element*& pReturnValue ) const noexcept;
 		private:
 			/// gets a token for both versions of store. N.B. assumes collection is already locked.
 			std::pair<T_Token,typename std::list< std::pair<T_Token,T_Element> >::iterator> getFreeToken();
@@ -113,21 +117,21 @@ bool communique::impl::UniqueTokenStorage<T_Element,T_Token>::pop( const T_Token
 template<class T_Element,class T_Token>
 T_Element& communique::impl::UniqueTokenStorage<T_Element,T_Token>::at( const T_Token& token )
 {
-	std::lock_guard<std::mutex> guard(lockMutex_);
-
-	auto iEntry=container_.begin();
-	for( ; iEntry!=container_.end(); ++iEntry )
-	{
-		if( token==iEntry->first ) break;
-	}
-
-	if( iEntry==container_.end() ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::at couldn't find token" ); // Token not found
-
-	return iEntry->second;
+	T_Element pReturnValue;
+	if( !at( token, pReturnValue ) ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::at couldn't find token" );
+	return *pReturnValue;
 }
 
 template<class T_Element,class T_Token>
 const T_Element& communique::impl::UniqueTokenStorage<T_Element,T_Token>::at( const T_Token& token ) const
+{
+	T_Element pReturnValue;
+	if( !at( token, pReturnValue ) ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::at couldn't find token" );
+	return *pReturnValue;
+}
+
+template<class T_Element,class T_Token>
+bool communique::impl::UniqueTokenStorage<T_Element,T_Token>::at( const T_Token& token, T_Element*& pReturnValue ) noexcept
 {
 	std::lock_guard<std::mutex> guard(lockMutex_);
 
@@ -137,9 +141,29 @@ const T_Element& communique::impl::UniqueTokenStorage<T_Element,T_Token>::at( co
 		if( token==iEntry->first ) break;
 	}
 
-	if( iEntry==container_.end() ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::at couldn't find token" ); // Token not found
+	if( iEntry==container_.end() ) return false; // Token not found
 
-	return iEntry->second;
+	pReturnValue=&iEntry->second;
+
+	return true;
+}
+
+template<class T_Element,class T_Token>
+bool communique::impl::UniqueTokenStorage<T_Element,T_Token>::at( const T_Token& token, const T_Element*& pReturnValue ) const noexcept
+{
+	std::lock_guard<std::mutex> guard(lockMutex_);
+
+	auto iEntry=container_.begin();
+	for( ; iEntry!=container_.end(); ++iEntry )
+	{
+		if( token==iEntry->first ) break;
+	}
+
+	if( iEntry==container_.end() ) return false; // Token not found
+
+	pReturnValue=&iEntry->second;
+
+	return true;
 }
 
 template<class T_Element,class T_Token>
