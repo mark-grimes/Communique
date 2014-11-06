@@ -33,7 +33,7 @@ void communique::impl::Connection::sendRequest( const std::string& message, std:
 	// later. I'll transmit this token to the other side of the connection so that
 	// they use it in the response. Once I get the response with the token in it
 	// I can use the token to retrieve the correct handler.
-	communique::impl::Message::UserReference userReference=responseHandlers_.store( responseHandler );
+	communique::impl::Message::UserReference userReference=responseHandlers_.push( responseHandler );
 
 	communique::impl::Message newMessage( pConnection_, message, communique::impl::Message::REQUEST, userReference );
 	pConnection_->send( newMessage.websocketppMessage() );
@@ -142,7 +142,7 @@ void communique::impl::Connection::on_message( websocketpp::connection_hdl hdl, 
 		// was sent.
 
 		std::function<void(const std::string&)> responseHandler;
-		if( responseHandlers_.retrieve( receivedMessage.userReference(), responseHandler ) )
+		if( responseHandlers_.pop( receivedMessage.userReference(), responseHandler ) )
 		{
 			std::async( responseHandler, receivedMessage.messageBody() );
 		}

@@ -28,14 +28,18 @@ namespace communique
 		{
 		public:
 			UniqueTokenStorage();
-			T_Token store( const T_Element& newElement );
-			T_Token store( const T_Element&& newElement );
+			T_Token push( const T_Element& newElement );
+			T_Token push( const T_Element&& newElement );
 			/** @brief Remove and return the object associated to the token.
 			 * Throws an exception if the token does not exist.*/
-			T_Element retrieve( const T_Token& token );
+			T_Element pop( const T_Token& token );
 			/** @brief Remove and move into the supplied object the object associated to the token.
 			 * Returns false if the token doesn't exist.*/
-			bool retrieve( const T_Token& token, T_Element& returnValue ) noexcept;
+			bool pop( const T_Token& token, T_Element& returnValue ) noexcept;
+			/** @brief Return the object associated to the token without removing it.
+			 * Throws an exception if the token does not exist.*/
+			T_Element& at( const T_Token& token );
+			const T_Element& at( const T_Token& token ) const;
 		private:
 			/// gets a token for both versions of store. N.B. assumes collection is already locked.
 			std::pair<T_Token,typename std::list< std::pair<T_Token,T_Element> >::iterator> getFreeToken();
@@ -53,7 +57,7 @@ communique::impl::UniqueTokenStorage<T_Element,T_Token>::UniqueTokenStorage()
 }
 
 template<class T_Element,class T_Token>
-T_Token communique::impl::UniqueTokenStorage<T_Element,T_Token>::store( const T_Element& newElement )
+T_Token communique::impl::UniqueTokenStorage<T_Element,T_Token>::push( const T_Element& newElement )
 {
 	std::lock_guard<std::mutex> guard(lockMutex_);
 
@@ -66,7 +70,7 @@ T_Token communique::impl::UniqueTokenStorage<T_Element,T_Token>::store( const T_
 }
 
 template<class T_Element,class T_Token>
-T_Token communique::impl::UniqueTokenStorage<T_Element,T_Token>::store( const T_Element&& newElement )
+T_Token communique::impl::UniqueTokenStorage<T_Element,T_Token>::push( const T_Element&& newElement )
 {
 	std::lock_guard<std::mutex> guard(lockMutex_);
 
@@ -79,16 +83,16 @@ T_Token communique::impl::UniqueTokenStorage<T_Element,T_Token>::store( const T_
 }
 
 template<class T_Element,class T_Token>
-T_Element communique::impl::UniqueTokenStorage<T_Element,T_Token>::retrieve( const T_Token& token )
+T_Element communique::impl::UniqueTokenStorage<T_Element,T_Token>::pop( const T_Token& token )
 {
 	//std::lock_guard<std::mutex> guard(lockMutex_);
 	T_Element returnValue;
-	if( !retrieve( token, returnValue ) ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::retrieve couldn't find token" );
+	if( !pop( token, returnValue ) ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::pop couldn't find token" );
 	return returnValue;
 }
 
 template<class T_Element,class T_Token>
-bool communique::impl::UniqueTokenStorage<T_Element,T_Token>::retrieve( const T_Token& token, T_Element& returnValue ) noexcept
+bool communique::impl::UniqueTokenStorage<T_Element,T_Token>::pop( const T_Token& token, T_Element& returnValue ) noexcept
 {
 	std::lock_guard<std::mutex> guard(lockMutex_);
 
@@ -104,6 +108,38 @@ bool communique::impl::UniqueTokenStorage<T_Element,T_Token>::retrieve( const T_
 	container_.erase( iEntry );
 
 	return true;
+}
+
+template<class T_Element,class T_Token>
+T_Element& communique::impl::UniqueTokenStorage<T_Element,T_Token>::at( const T_Token& token )
+{
+	std::lock_guard<std::mutex> guard(lockMutex_);
+
+	auto iEntry=container_.begin();
+	for( ; iEntry!=container_.end(); ++iEntry )
+	{
+		if( token==iEntry->first ) break;
+	}
+
+	if( iEntry==container_.end() ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::at couldn't find token" ); // Token not found
+
+	return iEntry->second;
+}
+
+template<class T_Element,class T_Token>
+const T_Element& communique::impl::UniqueTokenStorage<T_Element,T_Token>::at( const T_Token& token ) const
+{
+	std::lock_guard<std::mutex> guard(lockMutex_);
+
+	auto iEntry=container_.begin();
+	for( ; iEntry!=container_.end(); ++iEntry )
+	{
+		if( token==iEntry->first ) break;
+	}
+
+	if( iEntry==container_.end() ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::at couldn't find token" ); // Token not found
+
+	return iEntry->second;
 }
 
 template<class T_Element,class T_Token>
@@ -136,7 +172,7 @@ std::pair<T_Token,typename std::list< std::pair<T_Token,T_Element> >::iterator> 
 					if( token!=iEntry->first ) break;
 				}
 				// Make sure I was able to find free space
-				if( iEntry==container_.end() ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::store couldn't find free space" );
+				if( iEntry==container_.end() ) throw std::runtime_error( "communique::impl::UniqueTokenStorage::push couldn't find free space" );
 				return std::make_pair( token, iEntry );
 			} // end of "else" for "if can't decrease the first token"
 		} // end of "else" for "if can't increase the last token"
