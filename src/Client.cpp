@@ -17,7 +17,7 @@ namespace communique
 	class ClientPrivateMembers
 	{
 	public:
-		typedef websocketpp::client<websocketpp::config::asio> client_type;
+		typedef websocketpp::client<websocketpp::config::asio_tls> client_type;
 		std::thread ioThread_;
 		client_type client_;
 		std::auto_ptr<communique::impl::Connection> pConnection_;
@@ -42,8 +42,8 @@ communique::Client::Client()
 	pImple_->client_.set_access_channels(websocketpp::log::alevel::none);
 	//pImple_->client_.set_error_channels(websocketpp::log::elevel::all ^ websocketpp::log::elevel::info);
 	pImple_->client_.set_error_channels(websocketpp::log::elevel::none);
+	pImple_->client_.set_tls_init_handler( std::bind( &ClientPrivateMembers::on_tls_init, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->client_.init_asio();
-//	pImple_->client_.set_tls_init_handler( std::bind( &ClientPrivateMembers::on_tls_init, pImple_.get(), std::placeholders::_1 ) );
 //	pImple_->client_.set_message_handler( std::bind( &ClientPrivateMembers::on_message, pImple_.get(), std::placeholders::_1, std::placeholders::_2 ) );
 	pImple_->client_.set_open_handler( std::bind( &ClientPrivateMembers::on_open, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->client_.set_close_handler( std::bind( &ClientPrivateMembers::on_close, pImple_.get(), std::placeholders::_1 ) );
@@ -69,7 +69,6 @@ communique::Client::~Client()
 
 std::shared_ptr<boost::asio::ssl::context> communique::ClientPrivateMembers::on_tls_init( websocketpp::connection_hdl hdl )
 {
-	std::cout << "init_tls called" << std::endl;
 	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
 	pContext->set_options( boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use );
 	//pContext->set_password_callback( boost::bind( &server::get_password, this ) );
@@ -85,7 +84,9 @@ std::shared_ptr<boost::asio::ssl::context> communique::ClientPrivateMembers::on_
 void communique::Client::connect( const std::string& URI )
 {
 	websocketpp::lib::error_code errorCode;
-	pImple_->pConnection_.reset( new communique::impl::Connection( pImple_->client_.get_connection( URI, errorCode ), pImple_->infoHandler_, pImple_->requestHandler_ ) );
+	auto pWebPPConnection=pImple_->client_.get_connection( URI, errorCode );
+	if( errorCode.value()!=0 ) throw std::runtime_error( "Unable to get the websocketpp connection - "+errorCode.message() );
+	pImple_->pConnection_.reset( new communique::impl::Connection( pWebPPConnection, pImple_->infoHandler_, pImple_->requestHandler_ ) );
 	// If "advanced" handlers have beed set (just has IConnection* as additional argument)
 	// change the handler to these.
 	if( pImple_->infoHandlerAdvanced_ ) pImple_->pConnection_->setInfoHandler(pImple_->infoHandlerAdvanced_);

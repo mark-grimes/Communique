@@ -15,7 +15,7 @@ namespace communique
 	class ServerPrivateMembers
 	{
 	public:
-		typedef websocketpp::server<websocketpp::config::asio> server_type;
+		typedef websocketpp::server<websocketpp::config::asio_tls> server_type;
 		server_type server_;
 		std::thread ioThread_;
 		std::list< std::shared_ptr<communique::impl::Connection> > currentConnections_;
@@ -40,8 +40,8 @@ communique::Server::Server()
 	pImple_->server_.set_access_channels(websocketpp::log::alevel::none);
 	//pImple_->server_.set_error_channels(websocketpp::log::elevel::all ^ websocketpp::log::elevel::info);
 	pImple_->server_.set_error_channels(websocketpp::log::elevel::none);
+	pImple_->server_.set_tls_init_handler( std::bind( &ServerPrivateMembers::on_tls_init, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.init_asio();
-	//pImple_->server_.set_tls_init_handler( std::bind( &ServerPrivateMembers::on_tls_init, pImple_.get(), std::placeholders::_1 ) );
 	//pImple_->server_.set_message_handler( std::bind( &ServerPrivateMembers::on_message, pImple_.get(), std::placeholders::_1, std::placeholders::_2 ) );
 	pImple_->server_.set_open_handler( std::bind( &ServerPrivateMembers::on_open, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.set_close_handler( std::bind( &ServerPrivateMembers::on_close, pImple_.get(), std::placeholders::_1 ) );
@@ -128,7 +128,6 @@ std::vector<std::shared_ptr<communique::IConnection> > communique::Server::curre
 
 websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::ServerPrivateMembers::on_tls_init( websocketpp::connection_hdl hdl )
 {
-	std::cout << "init_tls called" << std::endl;
 	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
 	pContext->set_options( boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use );
 	//pContext->set_password_callback( boost::bind( &server::get_password, this ) );

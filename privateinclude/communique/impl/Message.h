@@ -25,8 +25,8 @@ namespace communique
 		class Message
 		{
 		public:
-			typedef websocketpp::connection<websocketpp::config::asio>::ptr connection_ptr;
-			typedef websocketpp::connection<websocketpp::config::asio>::message_ptr message_ptr;
+			typedef websocketpp::connection<websocketpp::config::asio_tls>::ptr connection_ptr;
+			typedef websocketpp::connection<websocketpp::config::asio_tls>::message_ptr message_ptr;
 			typedef uint32_t UserReference;
 			enum MessageType { REQUEST, RESPONSE, INFO, REQUESTERROR }; ///< Note that this is currently packed into a char, so don't extend more than 16 types
 		public:

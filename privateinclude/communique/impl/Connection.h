@@ -29,9 +29,9 @@ namespace communique
 		class Connection : public communique::IConnection
 		{
 		public:
-			typedef websocketpp::connection<websocketpp::config::asio>::ptr connection_ptr;
-			typedef websocketpp::connection<websocketpp::config::asio>::message_ptr message_ptr;
-			//typedef websocketpp::client<websocketpp::config::asio>::connection_ptr connection_ptr;
+			typedef websocketpp::connection<websocketpp::config::asio_tls>::ptr connection_ptr;
+			typedef websocketpp::connection<websocketpp::config::asio_tls>::message_ptr message_ptr;
+			//typedef websocketpp::client<connection_type>::connection_ptr connection_ptr;
 		public:
 			Connection( connection_ptr pConnection );
 			Connection( connection_ptr pConnection, std::function<void(const std::string&)>& infoHandler, std::function<std::string(const std::string&)>& requestHandler );
