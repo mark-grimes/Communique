@@ -25,6 +25,8 @@ namespace communique
 		/** @brief Returns true if the connection is established. If the handshake is still ongoing, blocks until that is finished. */
 		bool isConnected();
 		void disconnect();
+		void verifyFilename( const std::string& filename );
+
 		virtual void sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler ) override;
 		virtual void sendInfo( const std::string& message ) override;
 		virtual void setInfoHandler( std::function<void(const std::string&)> infoHandler ) override;

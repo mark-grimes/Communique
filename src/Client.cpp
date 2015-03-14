@@ -21,6 +21,7 @@ namespace communique
 		std::thread ioThread_;
 		client_type client_;
 		std::unique_ptr<communique::impl::Connection> pConnection_;
+		std::string verifyFilename_;
 
 		std::function<void(const std::string&)> infoHandler_;
 		std::function<void(const std::string&,communique::IConnection*)> infoHandlerAdvanced_;
@@ -71,12 +72,12 @@ std::shared_ptr<boost::asio::ssl::context> communique::ClientPrivateMembers::on_
 {
 	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
 	pContext->set_options( boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use );
-	//pContext->set_password_callback( boost::bind( &server::get_password, this ) );
-	pContext->use_certificate_chain_file( "/Users/phmag/Documents/EclipseWorkspaces/temp/keys/server.pem" );
-	pContext->use_private_key_file( "/Users/phmag/Documents/EclipseWorkspaces/temp/keys/server.pem", boost::asio::ssl::context::pem );
-	pContext->load_verify_file( "/Users/phmag/Documents/EclipseWorkspaces/temp/keys/rootCA.pem" );
-	pContext->use_tmp_dh_file( "/Users/phmag/Documents/EclipseWorkspaces/temp/dh512.pem" );
-	//pContext->set_verify_mode( boost::asio::ssl::verify_peer/* | boost::asio::ssl::verify_fail_if_no_peer_cert*/ );
+
+	if( !verifyFilename_.empty() )
+	{
+		pContext->load_verify_file( verifyFilename_ );
+		pContext->set_verify_mode( boost::asio::ssl::verify_peer | boost::asio::ssl::verify_fail_if_no_peer_cert );
+	}
 
 	return pContext;
 }
@@ -112,6 +113,11 @@ void communique::Client::disconnect()
 {
 	if( pImple_->pConnection_ ) pImple_->pConnection_->close();
 	if( pImple_->ioThread_.joinable() ) pImple_->ioThread_.join();
+}
+
+void communique::Client::verifyFilename( const std::string& filename )
+{
+	pImple_->verifyFilename_=filename;
 }
 
 void communique::Client::sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler )
