@@ -19,7 +19,11 @@ namespace communique
 		Client( Client&& otherClient ) noexcept;
 		~Client();
 
+		/** @brief Attempts to connect to the URI provided. Returns before the connection is established. */
 		void connect( const std::string& URI );
+
+		/** @brief Returns true if the connection is established. If the handshake is still ongoing, blocks until that is finished. */
+		bool isConnected();
 		void disconnect();
 		virtual void sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler ) override;
 		virtual void sendInfo( const std::string& message ) override;

@@ -102,6 +102,12 @@ void communique::Client::connect( const std::string& URI )
 	pImple_->ioThread_=std::thread( &ClientPrivateMembers::client_type::run, &pImple_->client_ );
 }
 
+bool communique::Client::isConnected()
+{
+	if( !pImple_->pConnection_ ) return false;
+	return pImple_->pConnection_->isConnected();
+}
+
 void communique::Client::disconnect()
 {
 	if( pImple_->pConnection_ ) pImple_->pConnection_->close();

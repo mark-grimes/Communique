@@ -74,21 +74,28 @@ communique::impl::Connection::connection_ptr& communique::impl::Connection::unde
 	return pConnection_;
 }
 
-void communique::impl::Connection::close()
+bool communique::impl::Connection::isConnected()
 {
 	//
 	// Make sure the connection is not in a transitioning state. If it is, wait until it finishes.
-	// Not fussed if the connection is "closing" because then I don't need to send a close command.
+	// Not fussed if the connection is "closing" because I know it won't transition to state that
+	// would require returning true.
 	//
 	while( pConnection_->get_state()==websocketpp::session::state::connecting )
 	{
 		std::this_thread::sleep_for( std::chrono::milliseconds(50) );
 	}
 
+	return pConnection_->get_state()==websocketpp::session::state::open;
+}
+
+void communique::impl::Connection::close()
+{
 	//
-	// If the connection is open, tell it to close.
+	// If the connection is open, tell it to close. If the connection is in the "connecting"
+	// state the isConnected call blocks until it changes to something else.
 	//
-	if( pConnection_->get_state()==websocketpp::session::state::open )
+	if( isConnected() )
 	{
 		websocketpp::lib::error_code errorCode;
 

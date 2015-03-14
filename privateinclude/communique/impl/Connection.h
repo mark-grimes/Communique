@@ -45,6 +45,8 @@ namespace communique
 			virtual void setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler ) override;
 
 			connection_ptr& underlyingPointer();
+			/// @brief Returns true if the connection is established. If status is "connecting" blocks until the status changes.
+			bool isConnected();
 			void close();
 		private:
 			connection_ptr pConnection_;
