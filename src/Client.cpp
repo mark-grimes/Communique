@@ -20,7 +20,7 @@ namespace communique
 		typedef websocketpp::client<websocketpp::config::asio_tls> client_type;
 		std::thread ioThread_;
 		client_type client_;
-		std::auto_ptr<communique::impl::Connection> pConnection_;
+		std::unique_ptr<communique::impl::Connection> pConnection_;
 
 		std::function<void(const std::string&)> infoHandler_;
 		std::function<void(const std::string&,communique::IConnection*)> infoHandlerAdvanced_;
@@ -104,19 +104,19 @@ void communique::Client::connect( const std::string& URI )
 
 void communique::Client::disconnect()
 {
-	if( pImple_->pConnection_.get()!=nullptr ) pImple_->pConnection_->close();
+	if( pImple_->pConnection_ ) pImple_->pConnection_->close();
 	if( pImple_->ioThread_.joinable() ) pImple_->ioThread_.join();
 }
 
 void communique::Client::sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler )
 {
-	if( !pImple_->pConnection_.get() ) throw communique::impl::Exception( "No connection" );
+	if( !pImple_->pConnection_ ) throw communique::impl::Exception( "No connection" );
 	pImple_->pConnection_->sendRequest( message, responseHandler );
 }
 
 void communique::Client::sendInfo( const std::string& message )
 {
-	if( !pImple_->pConnection_.get() ) throw communique::impl::Exception( "No connection" );
+	if( pImple_->pConnection_ ) throw communique::impl::Exception( "No connection" );
 	pImple_->pConnection_->sendInfo( message );
 }
 
@@ -124,7 +124,7 @@ void communique::Client::setInfoHandler( std::function<void(const std::string&)>
 {
 	pImple_->infoHandler_=infoHandler;
 	pImple_->infoHandlerAdvanced_=nullptr;
-	if( pImple_->pConnection_.get() ) // don't know why I need ".get()". C++11 standard should allow auto_ptr comparison
+	if( pImple_->pConnection_ )
 	{
 		pImple_->pConnection_->setInfoHandler( infoHandler );
 	}
@@ -134,7 +134,7 @@ void communique::Client::setInfoHandler( std::function<void(const std::string&,c
 {
 	pImple_->infoHandler_=nullptr;
 	pImple_->infoHandlerAdvanced_=infoHandler;
-	if( pImple_->pConnection_.get() ) // don't know why I need ".get()". C++11 standard should allow auto_ptr comparison
+	if( pImple_->pConnection_ )
 	{
 		pImple_->pConnection_->setInfoHandler( infoHandler );
 	}
@@ -144,7 +144,7 @@ void communique::Client::setRequestHandler( std::function<std::string(const std:
 {
 	pImple_->requestHandler_=requestHandler;
 	pImple_->requestHandlerAdvanced_=nullptr;
-	if( pImple_->pConnection_.get() )
+	if( pImple_->pConnection_ )
 	{
 		pImple_->pConnection_->setRequestHandler( requestHandler );
 	}
@@ -154,7 +154,7 @@ void communique::Client::setRequestHandler( std::function<std::string(const std:
 {
 	pImple_->requestHandler_=nullptr;
 	pImple_->requestHandlerAdvanced_=requestHandler;
-	if( pImple_->pConnection_.get() )
+	if( pImple_->pConnection_ )
 	{
 		pImple_->pConnection_->setRequestHandler( requestHandler );
 	}
