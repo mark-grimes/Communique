@@ -128,7 +128,7 @@ void communique::Client::sendRequest( const std::string& message, std::function<
 
 void communique::Client::sendInfo( const std::string& message )
 {
-	if( pImple_->pConnection_ ) throw communique::impl::Exception( "No connection" );
+	if( !pImple_->pConnection_ ) throw communique::impl::Exception( "No connection" );
 	pImple_->pConnection_->sendInfo( message );
 }
 
