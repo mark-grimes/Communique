@@ -25,6 +25,9 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			REQUIRE_NOTHROW( myClient.connect( "ws://localhost:"+std::to_string(portNumber) ) );
 			std::this_thread::sleep_for( shortWait );
 
+			REQUIRE( myClient.isConnected() );
+			REQUIRE( myServer.currentConnections().size()==1 );
+
 			REQUIRE_NOTHROW( myClient.disconnect() );
 			REQUIRE_NOTHROW( myServer.stop() );
 		}
