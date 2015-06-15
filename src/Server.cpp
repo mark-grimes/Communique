@@ -20,6 +20,10 @@ namespace communique
 		std::thread ioThread_;
 		std::list< std::shared_ptr<communique::impl::Connection> > currentConnections_;
 		mutable std::mutex currentConnectionsMutex_;
+		std::string certificateChainFile_;
+		std::string privateKeyFile_;
+		std::string verifyFile_;
+		std::string diffieHellmanParamsFile_;
 
 		websocketpp::lib::shared_ptr<boost::asio::ssl::context> on_tls_init( websocketpp::connection_hdl hdl );
 		//void on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg );
@@ -96,6 +100,26 @@ void communique::Server::stop()
 	if( pImple_->ioThread_.joinable() ) pImple_->ioThread_.join();
 }
 
+void communique::Server::setCertificateChainFile( const std::string& filename )
+{
+	pImple_->certificateChainFile_=filename;
+}
+
+void communique::Server::setPrivateKeyFile( const std::string& filename )
+{
+	pImple_->privateKeyFile_=filename;
+}
+
+void communique::Server::setVerifyFile( const std::string& filename )
+{
+	pImple_->verifyFile_=filename;
+}
+
+void communique::Server::setDiffieHellmanParamsFile( const std::string& filename )
+{
+	pImple_->diffieHellmanParamsFile_=filename;
+}
+
 void communique::Server::setDefaultInfoHandler( std::function<void(const std::string&)> infoHandler )
 {
 	pImple_->defaultInfoHandler_=infoHandler;
@@ -131,11 +155,14 @@ websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::ServerPrivat
 	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
 	pContext->set_options( boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use );
 	//pContext->set_password_callback( boost::bind( &server::get_password, this ) );
-	pContext->use_certificate_chain_file( "/Users/phmag/Documents/EclipseWorkspaces/temp/keys/server.pem" );
-	pContext->use_private_key_file( "/Users/phmag/Documents/EclipseWorkspaces/temp/keys/server.pem", boost::asio::ssl::context::pem );
-	pContext->load_verify_file( "/Users/phmag/Documents/EclipseWorkspaces/temp/keys/rootCA.pem" );
-	pContext->use_tmp_dh_file( "/Users/phmag/Documents/EclipseWorkspaces/temp/dh512.pem" );
-	//pContext->set_verify_mode( boost::asio::ssl::verify_peer/* | boost::asio::ssl::verify_fail_if_no_peer_cert*/ );
+	if( !certificateChainFile_.empty() ) pContext->use_certificate_chain_file( certificateChainFile_ );
+	if( !privateKeyFile_.empty() ) pContext->use_private_key_file( privateKeyFile_, boost::asio::ssl::context::pem );
+	if( !verifyFile_.empty() )
+	{
+		pContext->set_verify_mode( boost::asio::ssl::verify_peer | boost::asio::ssl::verify_fail_if_no_peer_cert );
+		pContext->load_verify_file( verifyFile_ );
+	}
+	if( !diffieHellmanParamsFile_.empty() ) pContext->use_tmp_dh_file( diffieHellmanParamsFile_ );
 
 	return pContext;
 }

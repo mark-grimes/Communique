@@ -9,13 +9,18 @@
 // so that each test uses a different port
 size_t portNumber=9008;
 const auto shortWait=std::chrono::milliseconds(50);
+const std::string testFileDirectory="/Users/phmag/Documents/EclipseWorkspaces/temp/keys/";
 
 SCENARIO( "Test that the Client and Server can interact properly", "[integration]" )
 {
 	GIVEN( "A Client and server" )
 	{
 		communique::Server myServer;
+		myServer.setCertificateChainFile( testFileDirectory+"server.pem" );
+		myServer.setPrivateKeyFile( testFileDirectory+"server.pem" );
+
 		communique::Client myClient;
+		myClient.setVerifyFile( testFileDirectory+"rootCA.pem" );
 
 		WHEN( "I start a server listening and try and connect a client to it" )
 		{

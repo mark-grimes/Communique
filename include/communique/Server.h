@@ -32,6 +32,10 @@ namespace communique
 
 		bool listen( size_t port );
 		void stop();
+		void setCertificateChainFile( const std::string& filename );
+		void setPrivateKeyFile( const std::string& filename );
+		void setVerifyFile( const std::string& filename );
+		void setDiffieHellmanParamsFile( const std::string& filename );
 
 		void setDefaultInfoHandler( std::function<void(const std::string&)> infoHandler );
 		void setDefaultInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler );

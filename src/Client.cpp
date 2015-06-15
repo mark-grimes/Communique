@@ -115,7 +115,7 @@ void communique::Client::disconnect()
 	if( pImple_->ioThread_.joinable() ) pImple_->ioThread_.join();
 }
 
-void communique::Client::verifyFilename( const std::string& filename )
+void communique::Client::setVerifyFile( const std::string& filename )
 {
 	pImple_->verifyFilename_=filename;
 }
