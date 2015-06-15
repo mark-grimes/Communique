@@ -150,6 +150,26 @@ std::vector<std::shared_ptr<communique::IConnection> > communique::Server::curre
 	return std::vector<std::shared_ptr<communique::IConnection> >( pImple_->currentConnections_.begin(), pImple_->currentConnections_.end() );
 }
 
+void communique::Server::setErrorLogLocation( std::ostream& outputStream )
+{
+	pImple_->server_.get_elog().set_ostream( &outputStream );
+}
+
+void communique::Server::setErrorLogLevel( uint32_t level )
+{
+	pImple_->server_.set_error_channels(level);
+}
+
+void communique::Server::setAccessLogLocation( std::ostream& outputStream )
+{
+	pImple_->server_.get_alog().set_ostream( &outputStream );
+}
+
+void communique::Server::setAccessLogLevel( uint32_t level )
+{
+	pImple_->server_.set_access_channels(level);
+}
+
 websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::ServerPrivateMembers::on_tls_init( websocketpp::connection_hdl hdl )
 {
 	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );

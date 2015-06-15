@@ -172,6 +172,26 @@ void communique::Client::setRequestHandler( std::function<std::string(const std:
 	}
 }
 
+void communique::Client::setErrorLogLocation( std::ostream& outputStream )
+{
+	pImple_->client_.get_elog().set_ostream( &outputStream );
+}
+
+void communique::Client::setErrorLogLevel( uint32_t level )
+{
+	pImple_->client_.set_error_channels(level);
+}
+
+void communique::Client::setAccessLogLocation( std::ostream& outputStream )
+{
+	pImple_->client_.get_alog().set_ostream( &outputStream );
+}
+
+void communique::Client::setAccessLogLevel( uint32_t level )
+{
+	pImple_->client_.set_access_channels(level);
+}
+
 //void communique::ClientPrivateMembers::on_message( websocketpp::connection_hdl hdl, client_type::message_ptr msg )
 //{
 //	communique::MessageHeader messageHeader;

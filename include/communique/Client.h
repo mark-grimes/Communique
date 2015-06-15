@@ -33,6 +33,15 @@ namespace communique
 		virtual void setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler ) override;
 		virtual void setRequestHandler( std::function<std::string(const std::string&)> requestHandler ) override;
 		virtual void setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler ) override;
+
+		/** @brief Set where error messages are sent */
+		void setErrorLogLocation( std::ostream& outputStream );
+		/** @brief Set the verbosity of error messages. Implementation specific, but zero is none 0xffffffff is everything. */
+		void setErrorLogLevel( uint32_t level );
+		/** @brief Set where log message about access requests are sent */
+		void setAccessLogLocation( std::ostream& outputStream );
+		/** @brief Set the verbosity of the access log. Implementation specific, but zero is none 0xffffffff is everything. */
+		void setAccessLogLevel( uint32_t level );
 	private:
 		/// Pimple idiom to hide the transport details
 		std::unique_ptr<class ClientPrivateMembers> pImple_;

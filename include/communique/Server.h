@@ -43,6 +43,15 @@ namespace communique
 		void setDefaultRequestHandler( std::function<const std::string(const std::string&,communique::IConnection*)> requestHandler );
 
 		std::vector<std::shared_ptr<communique::IConnection> > currentConnections();
+
+		/** @brief Set where error messages are sent */
+		void setErrorLogLocation( std::ostream& outputStream );
+		/** @brief Set the verbosity of error messages. Implementation specific, but zero is none 0xffffffff is everything. */
+		void setErrorLogLevel( uint32_t level );
+		/** @brief Set where log message about access requests are sent */
+		void setAccessLogLocation( std::ostream& outputStream );
+		/** @brief Set the verbosity of the access log. Implementation specific, but zero is none 0xffffffff is everything. */
+		void setAccessLogLevel( uint32_t level );
 	private:
 		/// Pimple idiom to hide the transport details
 		std::unique_ptr<class ServerPrivateMembers> pImple_;
