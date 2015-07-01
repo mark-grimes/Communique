@@ -5,7 +5,7 @@
 #include <iostream>
 
 
-SCENARIO( "Test that Client behaves as expected" )
+SCENARIO( "Test that Client behaves as expected", "[client]" )
 {
 	GIVEN( "A Client" )
 	{
