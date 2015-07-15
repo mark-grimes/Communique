@@ -7,8 +7,9 @@
 
 #include "testinputs.h"
 
-SCENARIO( "Test that the Client and Server can interact properly", "[integration]" )
+SCENARIO( "Test that the Client and Server can interact properly", "[integration][local]" )
 {
+
 	GIVEN( "A Client and server" )
 	{
 		communique::Server myServer;
