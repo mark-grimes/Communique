@@ -25,6 +25,8 @@ namespace communique
 		/** @brief Returns true if the connection is established. If the handshake is still ongoing, blocks until that is finished. */
 		bool isConnected();
 		void disconnect();
+		void setCertificateChainFile( const std::string& filename );
+		void setPrivateKeyFile( const std::string& filename );
 		void setVerifyFile( const std::string& filename );
 
 		virtual void sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler ) override;

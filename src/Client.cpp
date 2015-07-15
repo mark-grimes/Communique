@@ -21,6 +21,8 @@ namespace communique
 		std::thread ioThread_;
 		client_type client_;
 		std::unique_ptr<communique::impl::Connection> pConnection_;
+		std::string certificateChainFile_;
+		std::string privateKeyFile_;
 		std::string verifyFilename_;
 
 		std::function<void(const std::string&)> infoHandler_;
@@ -73,6 +75,8 @@ std::shared_ptr<boost::asio::ssl::context> communique::ClientPrivateMembers::on_
 	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
 	pContext->set_options( boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use );
 
+	if( !certificateChainFile_.empty() ) pContext->use_certificate_chain_file( certificateChainFile_ );
+	if( !privateKeyFile_.empty() ) pContext->use_private_key_file( privateKeyFile_, boost::asio::ssl::context::pem );
 	if( !verifyFilename_.empty() )
 	{
 		pContext->load_verify_file( verifyFilename_ );
@@ -113,6 +117,16 @@ void communique::Client::disconnect()
 {
 	if( pImple_->pConnection_ ) pImple_->pConnection_->close();
 	if( pImple_->ioThread_.joinable() ) pImple_->ioThread_.join();
+}
+
+void communique::Client::setCertificateChainFile( const std::string& filename )
+{
+	pImple_->certificateChainFile_=filename;
+}
+
+void communique::Client::setPrivateKeyFile( const std::string& filename )
+{
+	pImple_->privateKeyFile_=filename;
 }
 
 void communique::Client::setVerifyFile( const std::string& filename )
