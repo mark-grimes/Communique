@@ -105,15 +105,11 @@ SCENARIO( "Test that client authentication works", "[security][local]" )
 	GIVEN( "A Client and server" )
 	{
 		communique::Server myServer;
-		myServer.setErrorLogLevel(0xffffffff);
-		myServer.setErrorLogLocation( std::cerr );
 		myServer.setCertificateChainFile( testinputs::testFileDirectory+"server_cert.pem" );
 		myServer.setPrivateKeyFile( testinputs::testFileDirectory+"server_key.pem" );
 		myServer.setVerifyFile( testinputs::testFileDirectory+"certificateAuthority_cert.pem" );
 
 		communique::Client myClient;
-		myClient.setErrorLogLevel(0xffffffff);
-		myClient.setErrorLogLocation( std::cerr );
 		myClient.setCertificateChainFile( testinputs::testFileDirectory+"server_cert.pem" );
 		myClient.setPrivateKeyFile( testinputs::testFileDirectory+"server_key.pem" );
 		myClient.setVerifyFile( testinputs::testFileDirectory+"certificateAuthority_cert.pem" );
