@@ -1,3 +1,4 @@
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #include "communique/Server.h"
 
 #define _WEBSOCKETPP_CPP11_STL_ // Make sure websocketpp uses c++11 features in preference to boost ones
@@ -5,6 +6,7 @@
 #include <websocketpp/config/asio.hpp>
 #include <list>
 #include "communique/impl/Connection.h"
+#include "communique/impl/openssltools/X509CertificateDetails.h"
 
 
 //
@@ -31,6 +33,7 @@ namespace communique
 		void on_open( websocketpp::connection_hdl hdl );
 		void on_close( websocketpp::connection_hdl hdl );
 		void on_interrupt( websocketpp::connection_hdl hdl );
+		bool verify_certificate( bool preverified, boost::asio::ssl::verify_context& context );
 
 		std::function<void(const std::string&)> defaultInfoHandler_;
 		std::function<void(const std::string&,communique::IConnection*)> defaultInfoHandlerAdvanced_;
@@ -183,10 +186,55 @@ websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::ServerPrivat
 	{
 		pContext->set_verify_mode( boost::asio::ssl::verify_peer | boost::asio::ssl::verify_fail_if_no_peer_cert );
 		pContext->load_verify_file( verifyFile_ );
+		pContext->set_verify_callback( std::bind( &ServerPrivateMembers::verify_certificate, this, std::placeholders::_1, std::placeholders::_2 ) );
 	}
+	else pContext->set_verify_mode( boost::asio::ssl::verify_none );
 	if( !diffieHellmanParamsFile_.empty() ) pContext->use_tmp_dh_file( diffieHellmanParamsFile_ );
 
 	return pContext;
+}
+
+bool communique::ServerPrivateMembers::verify_certificate( bool preverified, boost::asio::ssl::verify_context& context )
+{
+	constexpr int maxDepth=8;
+	constexpr bool verbose=true;
+
+	X509_STORE_CTX *pRawContext=context.native_handle();
+
+	int errorCode=X509_STORE_CTX_get_error( pRawContext );
+	int depth=X509_STORE_CTX_get_error_depth( pRawContext );
+
+	X509* pCurrentCertificate=X509_STORE_CTX_get_current_cert( pRawContext );
+	communique::impl::openssltools::X509CertificateDetails certificateDetails(pCurrentCertificate);
+
+	/*
+	 * Catch a too long certificate chain. The depth limit set using
+	 * SSL_CTX_set_verify_depth() is by purpose set to "limit+1" so
+	 * that whenever the "depth>verify_depth" condition is met, we
+	 * have violated the limit and want to log this error condition.
+	 * We must do it here, because the CHAIN_TOO_LONG error would not
+	 * be found explicitly; only errors introduced by cutting off the
+	 * additional certificates would be logged.
+	 */
+	if( depth > maxDepth )
+	{
+		preverified=0;
+		errorCode=X509_V_ERR_CERT_CHAIN_TOO_LONG;
+		X509_STORE_CTX_set_error( pRawContext, errorCode );
+	}
+
+	if( !preverified )
+	{
+		std::string errorMessage="X509 verification error:"+std::to_string(errorCode)+":"+X509_verify_cert_error_string(errorCode)+":depth="+std::to_string(depth)+":subject="+certificateDetails.subject();
+		if( errorCode==X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT ) errorMessage+=":issuer="+certificateDetails.issuer();
+		server_.get_alog().write( websocketpp::log::alevel::debug_handshake, errorMessage );
+	}
+	else if( verbose )
+	{
+		server_.get_alog().write( websocketpp::log::alevel::debug_handshake, "X509 verification depth="+std::to_string(depth)+":"+certificateDetails.subject() );
+	}
+
+	return preverified;
 }
 
 void communique::ServerPrivateMembers::on_http( websocketpp::connection_hdl hdl )
