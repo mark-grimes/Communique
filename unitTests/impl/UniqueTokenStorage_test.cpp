@@ -4,7 +4,7 @@
 #include <iostream>
 #include <map>
 
-SCENARIO( "Test that UniqueTokenStorage behaves as expected", "[UniqueTokenStorage]" )
+SCENARIO( "Test that UniqueTokenStorage behaves as expected", "[UniqueTokenStorage][tools]" )
 {
 	GIVEN( "A UniqueTokenStorage<uint64_t,uint32_t> instance" )
 	{
