@@ -66,7 +66,6 @@ SCENARIO( "Test that an incorrect server certificate fails ", "[security][local]
 			std::this_thread::sleep_for( testinputs::shortWait );
 
 			REQUIRE_NOTHROW( myClient.connect( "ws://localhost:"+std::to_string(testinputs::portNumber) ) );
-			std::this_thread::sleep_for( testinputs::shortWait );
 
 			REQUIRE( !myClient.isConnected() );
 
@@ -93,7 +92,6 @@ SCENARIO( "Test that connection fails when server requires client authentication
 			std::this_thread::sleep_for( testinputs::shortWait );
 
 			REQUIRE_NOTHROW( myClient.connect( "ws://localhost:"+std::to_string(testinputs::portNumber) ) );
-			std::this_thread::sleep_for( testinputs::shortWait );
 
 			REQUIRE( !myClient.isConnected() );
 
@@ -126,7 +124,6 @@ SCENARIO( "Test that client authentication works", "[security][local]" )
 			std::this_thread::sleep_for( testinputs::shortWait );
 
 			REQUIRE_NOTHROW( myClient.connect( "ws://localhost:"+std::to_string(testinputs::portNumber) ) );
-			std::this_thread::sleep_for( testinputs::shortWait );
 
 			REQUIRE( myClient.isConnected() );
 
