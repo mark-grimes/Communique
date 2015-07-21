@@ -27,6 +27,7 @@ namespace communique
 
 		websocketpp::lib::shared_ptr<boost::asio::ssl::context> on_tls_init( websocketpp::connection_hdl hdl );
 		//void on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg );
+		void on_http( websocketpp::connection_hdl hdl );
 		void on_open( websocketpp::connection_hdl hdl );
 		void on_close( websocketpp::connection_hdl hdl );
 		void on_interrupt( websocketpp::connection_hdl hdl );
@@ -45,6 +46,7 @@ communique::Server::Server()
 	//pImple_->server_.set_error_channels(websocketpp::log::elevel::all ^ websocketpp::log::elevel::info);
 	pImple_->server_.set_error_channels(websocketpp::log::elevel::none);
 	pImple_->server_.set_tls_init_handler( std::bind( &ServerPrivateMembers::on_tls_init, pImple_.get(), std::placeholders::_1 ) );
+	pImple_->server_.set_http_handler( std::bind( &ServerPrivateMembers::on_http, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.init_asio();
 	//pImple_->server_.set_message_handler( std::bind( &ServerPrivateMembers::on_message, pImple_.get(), std::placeholders::_1, std::placeholders::_2 ) );
 	pImple_->server_.set_open_handler( std::bind( &ServerPrivateMembers::on_open, pImple_.get(), std::placeholders::_1 ) );
@@ -187,10 +189,12 @@ websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::ServerPrivat
 	return pContext;
 }
 
-//void communique::ServerPrivateMembers::on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg )
-//{
-//	std::cout << "Message is '" << msg->get_payload() << "'" << std::endl;
-//}
+void communique::ServerPrivateMembers::on_http( websocketpp::connection_hdl hdl )
+{
+	server_type::connection_ptr con = server_.get_con_from_hdl(hdl);
+	//con->set_body("Hello World!\n");
+	con->set_status(websocketpp::http::status_code::ok);
+}
 
 void communique::ServerPrivateMembers::on_open( websocketpp::connection_hdl hdl )
 {
