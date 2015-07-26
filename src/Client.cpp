@@ -113,6 +113,12 @@ bool communique::Client::isConnected()
 	return pImple_->pConnection_->isConnected();
 }
 
+bool communique::Client::isDisconnected()
+{
+	if( !pImple_->pConnection_ ) return true;
+	return pImple_->pConnection_->isDisconnected();
+}
+
 void communique::Client::disconnect()
 {
 	if( pImple_->pConnection_ ) pImple_->pConnection_->close();

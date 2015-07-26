@@ -47,6 +47,12 @@ namespace communique
 			connection_ptr& underlyingPointer();
 			/// @brief Returns true if the connection is established. If status is "connecting" blocks until the status changes.
 			bool isConnected();
+			/** @brief Returns true if the connection is closed. If status is "closing" blocks until the status changes.
+			 *
+			 * Note that this isn't quite the same as "!isConnected()", unless you're only concerned with the returned
+			 * value. This function only blocks while closing, isConnected() only blocks while opening.
+			 */
+			bool isDisconnected();
 			void close();
 		private:
 			connection_ptr pConnection_;

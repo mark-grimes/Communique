@@ -89,6 +89,21 @@ bool communique::impl::Connection::isConnected()
 	return pConnection_->get_state()==websocketpp::session::state::open;
 }
 
+bool communique::impl::Connection::isDisconnected()
+{
+	//
+	// Make sure the connection is not in a transitioning state. If it is, wait until it finishes.
+	// This isn't quite the same as "!isConnected()" because this method can be used to block
+	// while a client disconnects, whereas isConnected() only blocks while the client is connecting.
+	//
+	while( pConnection_->get_state()==websocketpp::session::state::closing )
+	{
+		std::this_thread::sleep_for( std::chrono::milliseconds(50) );
+	}
+
+	return pConnection_->get_state()==websocketpp::session::state::closed;
+}
+
 void communique::impl::Connection::close()
 {
 	//

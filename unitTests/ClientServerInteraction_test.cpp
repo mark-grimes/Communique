@@ -130,7 +130,7 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			for( size_t index=0; index<clients.size(); ++index )
 			{
 				REQUIRE_NOTHROW( clients[index].disconnect() );
-				CHECK( !clients[index].isConnected() ); // This call blocks until connections transitions
+				CHECK( clients[index].isDisconnected() ); // This call blocks until connections transitions
 				CHECK( myServer.currentConnections().size()==clients.size()-index-1 );
 			}
 		}

@@ -24,6 +24,13 @@ namespace communique
 
 		/** @brief Returns true if the connection is established. If the handshake is still ongoing, blocks until that is finished. */
 		bool isConnected();
+		/** @brief Returns true if the connection is closed. If in the process of disconnecting, blocks until that is finished.
+		 *
+		 * Note that this is subtly different from "!isConnected()". Since the blocking conditions are different the two
+		 * functions are useful to stop different race conditions. This function only blocks while closing, isConnected()
+		 * only blocks while opening.
+		 */
+		bool isDisconnected();
 		void disconnect();
 		void setCertificateChainFile( const std::string& filename );
 		void setPrivateKeyFile( const std::string& filename );
