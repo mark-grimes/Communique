@@ -1,4 +1,3 @@
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #include "communique/Server.h"
 
 #define _WEBSOCKETPP_CPP11_STL_ // Make sure websocketpp uses c++11 features in preference to boost ones
