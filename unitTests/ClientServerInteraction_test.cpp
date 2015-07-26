@@ -122,7 +122,7 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			for( size_t index=0; index<clients.size(); ++index )
 			{
 				REQUIRE_NOTHROW( clients[index].connect( "ws://localhost:"+std::to_string(testinputs::portNumber) ) );
-				std::this_thread::sleep_for( testinputs::shortWait );
+				CHECK( clients[index].isConnected() ); // This call blocks until handshake completes or fails
 				CHECK( myServer.currentConnections().size()==index+1 );
 			}
 
@@ -130,6 +130,7 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			for( size_t index=0; index<clients.size(); ++index )
 			{
 				REQUIRE_NOTHROW( clients[index].disconnect() );
+				CHECK( !clients[index].isConnected() ); // This call blocks until connections transitions
 				CHECK( myServer.currentConnections().size()==clients.size()-index-1 );
 			}
 		}
