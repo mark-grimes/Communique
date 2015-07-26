@@ -6,6 +6,7 @@
 #include <list>
 #include "communique/impl/Connection.h"
 #include "communique/impl/openssltools/X509CertificateDetails.h"
+#include "communique/impl/TLSHandler.h"
 
 
 //
@@ -16,23 +17,19 @@ namespace communique
 	class ServerPrivateMembers
 	{
 	public:
+		ServerPrivateMembers() : tlsHandler_(server_.get_alog()) { /*No operation besides initialiser list*/ }
 		typedef websocketpp::server<websocketpp::config::asio_tls> server_type;
 		server_type server_;
 		std::thread ioThread_;
 		std::list< std::shared_ptr<communique::impl::Connection> > currentConnections_;
 		mutable std::mutex currentConnectionsMutex_;
-		std::string certificateChainFile_;
-		std::string privateKeyFile_;
-		std::string verifyFile_;
-		std::string diffieHellmanParamsFile_;
+		communique::impl::TLSHandler tlsHandler_;
 
-		websocketpp::lib::shared_ptr<boost::asio::ssl::context> on_tls_init( websocketpp::connection_hdl hdl );
 		//void on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg );
 		void on_http( websocketpp::connection_hdl hdl );
 		void on_open( websocketpp::connection_hdl hdl );
 		void on_close( websocketpp::connection_hdl hdl );
 		void on_interrupt( websocketpp::connection_hdl hdl );
-		bool verify_certificate( bool preverified, boost::asio::ssl::verify_context& context );
 
 		std::function<void(const std::string&)> defaultInfoHandler_;
 		std::function<void(const std::string&,communique::IConnection*)> defaultInfoHandlerAdvanced_;
@@ -47,7 +44,7 @@ communique::Server::Server()
 	pImple_->server_.set_access_channels(websocketpp::log::alevel::none);
 	//pImple_->server_.set_error_channels(websocketpp::log::elevel::all ^ websocketpp::log::elevel::info);
 	pImple_->server_.set_error_channels(websocketpp::log::elevel::none);
-	pImple_->server_.set_tls_init_handler( std::bind( &ServerPrivateMembers::on_tls_init, pImple_.get(), std::placeholders::_1 ) );
+	pImple_->server_.set_tls_init_handler( std::bind( &communique::impl::TLSHandler::on_tls_init, &pImple_->tlsHandler_, std::placeholders::_1 ) );
 	pImple_->server_.set_http_handler( std::bind( &ServerPrivateMembers::on_http, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.init_asio();
 	//pImple_->server_.set_message_handler( std::bind( &ServerPrivateMembers::on_message, pImple_.get(), std::placeholders::_1, std::placeholders::_2 ) );
@@ -115,22 +112,22 @@ void communique::Server::stop()
 
 void communique::Server::setCertificateChainFile( const std::string& filename )
 {
-	pImple_->certificateChainFile_=filename;
+	pImple_->tlsHandler_.setCertificateChainFile(filename);
 }
 
 void communique::Server::setPrivateKeyFile( const std::string& filename )
 {
-	pImple_->privateKeyFile_=filename;
+	pImple_->tlsHandler_.setPrivateKeyFile(filename);
 }
 
 void communique::Server::setVerifyFile( const std::string& filename )
 {
-	pImple_->verifyFile_=filename;
+	pImple_->tlsHandler_.setVerifyFile(filename);
 }
 
 void communique::Server::setDiffieHellmanParamsFile( const std::string& filename )
 {
-	pImple_->diffieHellmanParamsFile_=filename;
+	pImple_->tlsHandler_.setDiffieHellmanParamsFile(filename);
 }
 
 void communique::Server::setDefaultInfoHandler( std::function<void(const std::string&)> infoHandler )
@@ -181,68 +178,6 @@ void communique::Server::setAccessLogLocation( std::ostream& outputStream )
 void communique::Server::setAccessLogLevel( uint32_t level )
 {
 	pImple_->server_.set_access_channels(level);
-}
-
-websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::ServerPrivateMembers::on_tls_init( websocketpp::connection_hdl hdl )
-{
-	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
-	pContext->set_options( boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use );
-	//pContext->set_password_callback( boost::bind( &server::get_password, this ) );
-	if( !certificateChainFile_.empty() ) pContext->use_certificate_chain_file( certificateChainFile_ );
-	if( !privateKeyFile_.empty() ) pContext->use_private_key_file( privateKeyFile_, boost::asio::ssl::context::pem );
-	if( !verifyFile_.empty() )
-	{
-		pContext->set_verify_mode( boost::asio::ssl::verify_peer | boost::asio::ssl::verify_fail_if_no_peer_cert );
-		pContext->load_verify_file( verifyFile_ );
-		pContext->set_verify_callback( std::bind( &ServerPrivateMembers::verify_certificate, this, std::placeholders::_1, std::placeholders::_2 ) );
-	}
-	else pContext->set_verify_mode( boost::asio::ssl::verify_none );
-	if( !diffieHellmanParamsFile_.empty() ) pContext->use_tmp_dh_file( diffieHellmanParamsFile_ );
-
-	return pContext;
-}
-
-bool communique::ServerPrivateMembers::verify_certificate( bool preverified, boost::asio::ssl::verify_context& context )
-{
-	constexpr int maxDepth=8;
-	constexpr bool verbose=true;
-
-	X509_STORE_CTX *pRawContext=context.native_handle();
-
-	int errorCode=X509_STORE_CTX_get_error( pRawContext );
-	int depth=X509_STORE_CTX_get_error_depth( pRawContext );
-
-	X509* pCurrentCertificate=X509_STORE_CTX_get_current_cert( pRawContext );
-	communique::impl::openssltools::X509CertificateDetails certificateDetails(pCurrentCertificate);
-
-	/*
-	 * Catch a too long certificate chain. The depth limit set using
-	 * SSL_CTX_set_verify_depth() is by purpose set to "limit+1" so
-	 * that whenever the "depth>verify_depth" condition is met, we
-	 * have violated the limit and want to log this error condition.
-	 * We must do it here, because the CHAIN_TOO_LONG error would not
-	 * be found explicitly; only errors introduced by cutting off the
-	 * additional certificates would be logged.
-	 */
-	if( depth > maxDepth )
-	{
-		preverified=0;
-		errorCode=X509_V_ERR_CERT_CHAIN_TOO_LONG;
-		X509_STORE_CTX_set_error( pRawContext, errorCode );
-	}
-
-	if( !preverified )
-	{
-		std::string errorMessage="X509 verification error:"+std::to_string(errorCode)+":"+X509_verify_cert_error_string(errorCode)+":depth="+std::to_string(depth)+":subject="+certificateDetails.subject();
-		if( errorCode==X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT ) errorMessage+=":issuer="+certificateDetails.issuer();
-		server_.get_alog().write( websocketpp::log::alevel::debug_handshake, errorMessage );
-	}
-	else if( verbose )
-	{
-		server_.get_alog().write( websocketpp::log::alevel::debug_handshake, "X509 verification depth="+std::to_string(depth)+":"+certificateDetails.subject() );
-	}
-
-	return preverified;
 }
 
 void communique::ServerPrivateMembers::on_http( websocketpp::connection_hdl hdl )
