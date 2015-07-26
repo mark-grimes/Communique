@@ -8,6 +8,7 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio.hpp>
 #include "communique/impl/Connection.h"
+#include "communique/impl/TLSHandler.h"
 
 //
 // Declaration of the pimple
@@ -18,12 +19,12 @@ namespace communique
 	{
 	public:
 		typedef websocketpp::client<websocketpp::config::asio_tls> client_type;
-		std::thread ioThread_;
+
+		ClientPrivateMembers() : tlsHandler_(client_.get_alog()) { /*No operation besides initialiser list*/ }
 		client_type client_;
+		std::thread ioThread_;
 		std::unique_ptr<communique::impl::Connection> pConnection_;
-		std::string certificateChainFile_;
-		std::string privateKeyFile_;
-		std::string verifyFilename_;
+		communique::impl::TLSHandler tlsHandler_;
 
 		std::function<void(const std::string&)> infoHandler_;
 		std::function<void(const std::string&,communique::IConnection*)> infoHandlerAdvanced_;
@@ -31,7 +32,6 @@ namespace communique
 		std::function<std::string(const std::string&,communique::IConnection*)> requestHandlerAdvanced_;
 
 
-		std::shared_ptr<boost::asio::ssl::context> on_tls_init( websocketpp::connection_hdl hdl );
 //		void on_message( websocketpp::connection_hdl hdl, client_type::message_ptr msg );
 		void on_open( websocketpp::connection_hdl hdl );
 		void on_close( websocketpp::connection_hdl hdl );
@@ -45,7 +45,7 @@ communique::Client::Client()
 	pImple_->client_.set_access_channels(websocketpp::log::alevel::none);
 	//pImple_->client_.set_error_channels(websocketpp::log::elevel::all ^ websocketpp::log::elevel::info);
 	pImple_->client_.set_error_channels(websocketpp::log::elevel::none);
-	pImple_->client_.set_tls_init_handler( std::bind( &ClientPrivateMembers::on_tls_init, pImple_.get(), std::placeholders::_1 ) );
+	pImple_->client_.set_tls_init_handler( std::bind( &communique::impl::TLSHandler::on_tls_init, &pImple_->tlsHandler_, std::placeholders::_1 ) );
 	pImple_->client_.init_asio();
 //	pImple_->client_.set_message_handler( std::bind( &ClientPrivateMembers::on_message, pImple_.get(), std::placeholders::_1, std::placeholders::_2 ) );
 	pImple_->client_.set_open_handler( std::bind( &ClientPrivateMembers::on_open, pImple_.get(), std::placeholders::_1 ) );
@@ -68,22 +68,6 @@ communique::Client::~Client()
 		if( pImple_ ) disconnect();
 	}
 	catch(...) { /* Make sure no exceptions propagate out */ }
-}
-
-std::shared_ptr<boost::asio::ssl::context> communique::ClientPrivateMembers::on_tls_init( websocketpp::connection_hdl hdl )
-{
-	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
-	pContext->set_options( boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use );
-
-	if( !certificateChainFile_.empty() ) pContext->use_certificate_chain_file( certificateChainFile_ );
-	if( !privateKeyFile_.empty() ) pContext->use_private_key_file( privateKeyFile_, boost::asio::ssl::context::pem );
-	if( !verifyFilename_.empty() )
-	{
-		pContext->load_verify_file( verifyFilename_ );
-		pContext->set_verify_mode( boost::asio::ssl::verify_peer | boost::asio::ssl::verify_fail_if_no_peer_cert );
-	}
-
-	return pContext;
 }
 
 void communique::Client::connect( const std::string& URI )
@@ -127,17 +111,17 @@ void communique::Client::disconnect()
 
 void communique::Client::setCertificateChainFile( const std::string& filename )
 {
-	pImple_->certificateChainFile_=filename;
+	pImple_->tlsHandler_.setCertificateChainFile(filename);
 }
 
 void communique::Client::setPrivateKeyFile( const std::string& filename )
 {
-	pImple_->privateKeyFile_=filename;
+	pImple_->tlsHandler_.setCertificateChainFile(filename);
 }
 
 void communique::Client::setVerifyFile( const std::string& filename )
 {
-	pImple_->verifyFilename_=filename;
+	pImple_->tlsHandler_.setCertificateChainFile(filename);
 }
 
 void communique::Client::sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler )
