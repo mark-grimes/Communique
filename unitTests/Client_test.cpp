@@ -18,8 +18,9 @@ SCENARIO( "Test that Client behaves as expected", "[client]" )
 		}
 		WHEN( "I try to connect to ws://echo.websocket.org" )
 		{
+			// Communique does not allow unsecured connections
 			REQUIRE_NOTHROW( myClient.connect( "ws://echo.websocket.org" ) );
-			REQUIRE( myClient.isConnected() );
+			REQUIRE( !myClient.isConnected() );
 			REQUIRE_NOTHROW( myClient.disconnect() );
 		}
 		WHEN( "I try to connect to the secured version wss://echo.websocket.org" )
