@@ -21,7 +21,8 @@ ADD_DEFINITIONS( "-std=c++11" )
 #
 include(ExternalProject)
 ExternalProject_Add( websocketpp
-	GIT_REPOSITORY https://github.com/zaphoyd/websocketpp.git
+	GIT_REPOSITORY https://github.com/mark-grimes/websocketpp.git
+	GIT_TAG addOriginalAsioError
 	CONFIGURE_COMMAND "" # Just using the source directory as an include directory
 	BUILD_COMMAND "" # Just using the source directory as an include directory
 	INSTALL_COMMAND "" # Don't want to install, it's header only
