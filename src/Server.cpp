@@ -71,7 +71,16 @@ bool communique::Server::listen( size_t port )
 	{
 		if( pImple_->ioThread_.joinable() ) stop(); // If already running stop the current IO
 
-		pImple_->server_.listen(port);
+		websocketpp::lib::error_code errorCode;
+		websocketpp::lib::asio::error_code underlyingErrorCode;
+		pImple_->server_.listen(port,errorCode,&underlyingErrorCode);
+		if( errorCode )
+		{
+			std::string errorMessage="Communique server listen error: "+errorCode.message();
+			if( underlyingErrorCode ) errorMessage+=" ("+underlyingErrorCode.message()+")";
+			throw std::runtime_error( errorMessage );
+		}
+
 		pImple_->server_.start_accept();
 
 		pImple_->ioThread_=std::thread( &ServerPrivateMembers::server_type::run, &pImple_->server_ );
