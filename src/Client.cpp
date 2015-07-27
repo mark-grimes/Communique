@@ -31,8 +31,6 @@ namespace communique
 		std::function<std::string(const std::string&)> requestHandler_;
 		std::function<std::string(const std::string&,communique::IConnection*)> requestHandlerAdvanced_;
 
-
-//		void on_message( websocketpp::connection_hdl hdl, client_type::message_ptr msg );
 		void on_open( websocketpp::connection_hdl hdl );
 		void on_close( websocketpp::connection_hdl hdl );
 		void on_interrupt( websocketpp::connection_hdl hdl );
@@ -47,7 +45,6 @@ communique::Client::Client()
 	pImple_->client_.set_error_channels(websocketpp::log::elevel::none);
 	pImple_->client_.set_tls_init_handler( std::bind( &communique::impl::TLSHandler::on_tls_init, &pImple_->tlsHandler_, std::placeholders::_1 ) );
 	pImple_->client_.init_asio();
-//	pImple_->client_.set_message_handler( std::bind( &ClientPrivateMembers::on_message, pImple_.get(), std::placeholders::_1, std::placeholders::_2 ) );
 	pImple_->client_.set_open_handler( std::bind( &ClientPrivateMembers::on_open, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->client_.set_close_handler( std::bind( &ClientPrivateMembers::on_close, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->client_.set_interrupt_handler( std::bind( &ClientPrivateMembers::on_interrupt, pImple_.get(), std::placeholders::_1 ) );
@@ -116,12 +113,12 @@ void communique::Client::setCertificateChainFile( const std::string& filename )
 
 void communique::Client::setPrivateKeyFile( const std::string& filename )
 {
-	pImple_->tlsHandler_.setCertificateChainFile(filename);
+	pImple_->tlsHandler_.setPrivateKeyFile(filename);
 }
 
 void communique::Client::setVerifyFile( const std::string& filename )
 {
-	pImple_->tlsHandler_.setCertificateChainFile(filename);
+	pImple_->tlsHandler_.setVerifyFile(filename);
 }
 
 void communique::Client::sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler )
@@ -196,46 +193,6 @@ void communique::Client::setAccessLogLevel( uint32_t level )
 	pImple_->client_.set_access_channels(level);
 }
 
-//void communique::ClientPrivateMembers::on_message( websocketpp::connection_hdl hdl, client_type::message_ptr msg )
-//{
-//	communique::MessageHeader messageHeader;
-//	messageHeader.ParseFromString( msg->get_payload() );
-//
-//	if( messageHeader.type()==communique::MessageHeader::INFO )
-//	{
-//		if( infoHandler_ ) infoHandler_( msg->get_payload().substr(messageHeader.ByteSize()) );
-//	}
-//	else if( messageHeader.type()==communique::MessageHeader::REQUEST )
-//	{
-//		if( requestHandler_ && messageHeader.has_user_reference() )
-//		{
-//			// Record where the message header stops and the body starts
-//			size_t messageBodyOffset=messageHeader.ByteSize();
-//
-//			// Reuse the message header and stream out as a string
-//			messageHeader.set_type( communique::MessageHeader::RESPONSE );
-//			// The user reference will already be set correctly
-//			std::string headerString;
-//			messageHeader.SerializeToString( &headerString );
-//
-//			std::async( [ this, hdl, msg, messageBodyOffset, headerString ]()
-//			{
-//				// Send the rest of the message with the header stripped off first, and use the
-//				// return from the handler
-//				client_.send( hdl, headerString+requestHandler_( msg->get_payload().substr(messageBodyOffset) ), websocketpp::frame::opcode::BINARY );
-//			} );
-//		}
-//	}
-//	else if( messageHeader.type()==communique::MessageHeader::RESPONSE )
-//	{
-//		// This will be the response to a request that I've sent out, so
-//		// I need to search for the handler that was stored when the message
-//		// was sent.
-//
-//		// TODO - implement
-//	}
-//}
-//
 void communique::ClientPrivateMembers::on_open( websocketpp::connection_hdl hdl )
 {
 }

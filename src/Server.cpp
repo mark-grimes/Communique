@@ -26,7 +26,6 @@ namespace communique
 		mutable std::mutex currentConnectionsMutex_;
 		communique::impl::TLSHandler tlsHandler_;
 
-		//void on_message( websocketpp::connection_hdl hdl, server_type::message_ptr msg );
 		void on_http( websocketpp::connection_hdl hdl );
 		void on_open( websocketpp::connection_hdl hdl );
 		void on_close( websocketpp::connection_hdl hdl );
@@ -48,7 +47,6 @@ communique::Server::Server()
 	pImple_->server_.set_tls_init_handler( std::bind( &communique::impl::TLSHandler::on_tls_init, &pImple_->tlsHandler_, std::placeholders::_1 ) );
 	pImple_->server_.set_http_handler( std::bind( &ServerPrivateMembers::on_http, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.init_asio();
-	//pImple_->server_.set_message_handler( std::bind( &ServerPrivateMembers::on_message, pImple_.get(), std::placeholders::_1, std::placeholders::_2 ) );
 	pImple_->server_.set_open_handler( std::bind( &ServerPrivateMembers::on_open, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.set_close_handler( std::bind( &ServerPrivateMembers::on_close, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.set_interrupt_handler( std::bind( &ServerPrivateMembers::on_interrupt, pImple_.get(), std::placeholders::_1 ) );
