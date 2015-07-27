@@ -5,7 +5,6 @@
 #include <websocketpp/config/asio.hpp>
 #include <list>
 #include "communique/impl/Connection.h"
-#include "communique/impl/openssltools/X509CertificateDetails.h"
 #include "communique/impl/TLSHandler.h"
 
 
