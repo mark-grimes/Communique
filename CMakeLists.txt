@@ -80,6 +80,8 @@ configure_file( ${PROJECT_NAME}Config.cmake.in
 OPTION( BUILD_UNITTESTS "Build unit tests" ON )
 MESSAGE( STATUS "BUILD_UNITTESTS: ${BUILD_UNITTESTS}" )
 IF( BUILD_UNITTESTS )
+	# Fix the test configuration file to have the correct paths
+	CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/test/testinputs.cpp.in" "${PROJECT_SOURCE_DIR}/test/testinputs.cpp" @ONLY )
 	AUX_SOURCE_DIRECTORY( "test" unittests_sources )
 	AUX_SOURCE_DIRECTORY( "test/impl" unittests_sources )
 	ADD_EXECUTABLE( unitTests.exe ${unittests_sources} )
