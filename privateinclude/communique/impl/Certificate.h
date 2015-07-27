@@ -18,7 +18,7 @@ namespace communique
 		class Certificate : public communique::ICertificate
 		{
 		public:
-			Certificate( X509* pCertificate );
+			Certificate( X509* pCertificate, bool takeOwnership=false );
 			Certificate( const std::string& filename );
 			virtual ~Certificate();
 
@@ -31,6 +31,7 @@ namespace communique
 
 		protected:
 			X509* pOpenSSLHandle_;
+			bool handleIsOwned_; ///< True if this instance owns pOpenSSLHandle_
 			std::string subjectName_;
 			std::map<std::string,std::string> rdns_; // map of Relative Distinguished Names
 			std::string issuerName_;

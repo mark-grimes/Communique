@@ -6,12 +6,12 @@
 // TODO - Remove once fully tested
 #include <iostream>
 
-communique::impl::Certificate::Certificate( X509* pCertificate ) : pOpenSSLHandle_(pCertificate)
+communique::impl::Certificate::Certificate( X509* pCertificate, bool takeOwnership ) : pOpenSSLHandle_(pCertificate), handleIsOwned_(takeOwnership)
 {
 	init();
 }
 
-communique::impl::Certificate::Certificate( const std::string& filename ) : pOpenSSLHandle_(nullptr)
+communique::impl::Certificate::Certificate( const std::string& filename ) : pOpenSSLHandle_(nullptr), handleIsOwned_(true)
 {
 	FILE* pFile=std::fopen(filename.c_str(),"r");
 	if( !pFile ) throw std::runtime_error( "Unable to load the certificate file \""+filename+"\" from disk" );
@@ -54,7 +54,7 @@ void communique::impl::Certificate::init()
 
 communique::impl::Certificate::~Certificate()
 {
-	X509_free(pOpenSSLHandle_);
+	if(handleIsOwned_) X509_free(pOpenSSLHandle_);
 }
 
 X509* communique::impl::Certificate::rawHandle()
