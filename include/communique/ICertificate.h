@@ -2,6 +2,8 @@
 #define communique_ICertificate_h
 
 #include <string>
+#include <vector>
+#include <chrono>
 
 namespace communique
 {
@@ -17,9 +19,15 @@ namespace communique
 		virtual ~ICertificate() {}
 
 		virtual std::string subject() const = 0;
-		virtual std::string subjectRDN( const std::string& RDN ) const = 0;
+		virtual std::vector<std::string> subjectRDN( const std::string& RDN ) const = 0;
+		virtual std::string subjectRDN( const std::string& RDN, size_t entry ) const = 0;
+		virtual size_t subjectRDNEntries( const std::string& RDN ) const = 0;
 
 		virtual std::string issuer() const = 0;
+		virtual std::chrono::system_clock::time_point validNotBefore() const = 0;
+		virtual std::chrono::system_clock::time_point validNotAfter() const = 0;
+		virtual bool dateIsValid() const = 0;
+		virtual bool hostnameMatches( const std::string& hostname ) const = 0;
 	};
 
 } // end of namespace communique

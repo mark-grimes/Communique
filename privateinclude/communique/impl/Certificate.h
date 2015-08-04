@@ -25,15 +25,20 @@ namespace communique
 			X509* rawHandle();
 
 			virtual std::string subject() const override;
-			virtual std::string subjectRDN( const std::string& RDN ) const override;
+			virtual std::vector<std::string> subjectRDN( const std::string& RDN ) const override;
+			virtual std::string subjectRDN( const std::string& RDN, size_t entry ) const override;
+			virtual size_t subjectRDNEntries( const std::string& RDN ) const override;
 
 			virtual std::string issuer() const override;
 
+			virtual std::chrono::system_clock::time_point validNotBefore() const override;
+			virtual std::chrono::system_clock::time_point validNotAfter() const override;
+			virtual bool dateIsValid() const override;
+			virtual bool hostnameMatches( const std::string& hostname ) const override;
 		protected:
 			X509* pOpenSSLHandle_;
-			bool handleIsOwned_; ///< True if this instance owns pOpenSSLHandle_
 			std::string subjectName_;
-			std::map<std::string,std::string> rdns_; // map of Relative Distinguished Names
+			std::map<std::string,std::vector<std::string> > rdns_; // map of Relative Distinguished Names
 			std::string issuerName_;
 			void init();
 		};
