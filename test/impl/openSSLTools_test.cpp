@@ -37,3 +37,41 @@ SCENARIO( "Test that the checkHostname function works as expected", "[local][too
 		}
 	}
 }
+
+SCENARIO( "Test that the hostnameFromURL function works as expected", "[local][tools][openssl]" )
+{
+	WHEN( "I check different URLs for the hostname 'google.com'" )
+	{
+		CHECK( communique::impl::hostnameFromURL("https://google.com")=="google.com" );
+		CHECK( communique::impl::hostnameFromURL("https://google.com/foo/bar")=="google.com" );
+		CHECK( communique::impl::hostnameFromURL("https://google.com:443/foo/bar")=="google.com" );
+		CHECK( communique::impl::hostnameFromURL("http://google.com:443/foo/bar")=="google.com" );
+		CHECK( communique::impl::hostnameFromURL("google.com/foo/bar")=="google.com" );
+		CHECK( communique::impl::hostnameFromURL("google.com:443/foo/bar")=="google.com" );
+		CHECK( communique::impl::hostnameFromURL("google.com:443")=="google.com" );
+		CHECK( communique::impl::hostnameFromURL("google.com")=="google.com" );
+	}
+	WHEN( "I check different URLs for the hostname 'www.google.com'" )
+	{
+		CHECK( communique::impl::hostnameFromURL("https://www.google.com")=="www.google.com" );
+		CHECK( communique::impl::hostnameFromURL("https://www.google.com/foo/bar")=="www.google.com" );
+		CHECK( communique::impl::hostnameFromURL("https://www.google.com:443/foo/bar")=="www.google.com" );
+		CHECK( communique::impl::hostnameFromURL("http://www.google.com:443/foo/bar")=="www.google.com" );
+		CHECK( communique::impl::hostnameFromURL("www.google.com/foo/bar")=="www.google.com" );
+		CHECK( communique::impl::hostnameFromURL("www.google.com:443/foo/bar")=="www.google.com" );
+		CHECK( communique::impl::hostnameFromURL("www.google.com:443")=="www.google.com" );
+		CHECK( communique::impl::hostnameFromURL("www.google.com")=="www.google.com" );
+	}
+	WHEN( "I check different URLs for the hostname 'blah.example-with-hyphen.net'" )
+	{
+		CHECK( communique::impl::hostnameFromURL("https://blah.example-with-hyphen.net")=="blah.example-with-hyphen.net" );
+		CHECK( communique::impl::hostnameFromURL("https://blah.example-with-hyphen.net/foo/bar")=="blah.example-with-hyphen.net" );
+		CHECK( communique::impl::hostnameFromURL("https://blah.example-with-hyphen.net:443/foo/bar")=="blah.example-with-hyphen.net" );
+		CHECK( communique::impl::hostnameFromURL("http://blah.example-with-hyphen.net:443/foo/bar")=="blah.example-with-hyphen.net" );
+		CHECK( communique::impl::hostnameFromURL("blah.example-with-hyphen.net/foo/bar")=="blah.example-with-hyphen.net" );
+		CHECK( communique::impl::hostnameFromURL("blah.example-with-hyphen.net:443/foo/bar")=="blah.example-with-hyphen.net" );
+		CHECK( communique::impl::hostnameFromURL("blah.example-with-hyphen.net:443")=="blah.example-with-hyphen.net" );
+		CHECK( communique::impl::hostnameFromURL("blah.example-with-hyphen.net")=="blah.example-with-hyphen.net" );
+	}
+
+}

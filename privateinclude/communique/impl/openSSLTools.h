@@ -96,6 +96,15 @@ namespace communique
 		 * @date 03/Aug/2015
 		 */
 		bool checkHostname( const std::string& hostname, const std::vector<std::string>& allowedList );
+
+		/** @brief Given a full URL, returns just the hostname.
+		 *
+		 * E.g. given "wss://www.example.com:443/foo/bar" returns "www.example.com".
+		 *
+		 * @author Mark Grimes
+		 * @date 09/Aug/2015
+		 */
+		std::string hostnameFromURL( const std::string& URL );
 	} // end of namespace impl
 } // end of namespace communique
 

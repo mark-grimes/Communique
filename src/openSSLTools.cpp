@@ -99,3 +99,13 @@ bool communique::impl::checkHostname( const std::string& hostname, const std::ve
 	// If control got this far then there were no matches
 	return false;
 }
+
+std::string communique::impl::hostnameFromURL( const std::string& URL )
+{
+	const std::regex hostnameRegex("^([_[:alnum:]]+://)?([_.[:alnum:]\\-]+)(:|/)?");
+
+	std::sregex_iterator iResult( URL.begin(), URL.end(), hostnameRegex );
+	if( iResult->size()!=4 ) throw std::runtime_error( "communique::impl::hostnameFromURL - invalid regex match in '"+URL+"'");
+
+	return (*iResult)[2];
+}
