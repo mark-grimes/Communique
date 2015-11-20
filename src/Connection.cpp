@@ -137,7 +137,7 @@ void communique::impl::Connection::on_message( websocketpp::connection_hdl hdl, 
 	{
 		if( requestHandler_ || requestHandlerAdvanced_ )
 		{
-			std::async( [ this, receivedMessage ]() // Copy receivedMessage by value because internally it holds a shared_ptr to the message
+			std::async( std::launch::async, [ this, receivedMessage ]() // Copy receivedMessage by value because internally it holds a shared_ptr to the message
 			{
 				std::string handlerResponse;
 				communique::impl::Message::MessageType responseType=communique::impl::Message::RESPONSE;
