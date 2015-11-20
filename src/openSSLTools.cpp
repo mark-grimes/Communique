@@ -1,8 +1,50 @@
 #include "communique/impl/openSSLTools.h"
-
-#include <regex> // regular expression for hostname checking
 #include <openssl/x509v3.h>
 
+//
+// Unnamed namespace for things only used in this file
+//
+namespace
+{
+	/** Splits a string into individual parts delimited by a user defined delimiter(s).
+	 *
+	 * The user can specify more than one character in the delimiter, in which case any of
+	 * them will be used, rather than the whole string.
+	 *
+	 * Note that this functions differently to splitByWhitespace in that any single delimiter
+	 * will produce a new element - multiple contiguous delimiters will produce multiple empty
+	 * elements in the return value. In splitByWhitespace contiguous whitespace is considered
+	 * as a single delimiter.
+	 *
+	 * @param[in] stringToSplit    The string to split into elements.
+	 * @param[in] delimiters       The delimiters to use. If more than one character is specified
+	 *                             then any single one is considered a delimiter.
+	 * @return                     A vector where each element is a portion of the string.
+	 * @author Mark Grimes
+	 * @date 16/Jul/2013
+	 */
+	std::vector<std::string> splitByDelimiters( const std::string& stringToSplit, const std::string& delimiters )
+	{
+		std::vector<std::string> returnValue;
+
+		size_t currentPosition=0;
+		size_t nextDelimiter=0;
+		do
+		{
+			// Find the next occurence of one of the delimiters and subtract everything up to that point
+			nextDelimiter=stringToSplit.find_first_of( delimiters, currentPosition );
+			std::string element=stringToSplit.substr( currentPosition, nextDelimiter-currentPosition );
+			returnValue.push_back(element);
+
+			// Move on to the next part of the string
+			if( nextDelimiter+1<stringToSplit.size() ) currentPosition=nextDelimiter+1;
+			else nextDelimiter=std::string::npos;
+
+		} while( nextDelimiter!=std::string::npos );
+
+		return returnValue;
+	}
+} // end of the unnamed namespace
 
 std::string communique::impl::convertASN1( ASN1_STRING *pOriginalString )
 {
@@ -69,36 +111,35 @@ bool communique::impl::checkHostname( const std::string& hostname, const std::ve
 		if( hostname==allowedHost ) return true;
 	}
 
-	// Now loop again checking for wildcard matches
-	const std::regex wildcardRegex("\\."); // Split by any occurrence of a dot
-
 	// Split hostname by dots so that each bit between dots can be checked
-	const std::sregex_iterator iHostBegin( hostname.begin(), hostname.end(), wildcardRegex );
-	const std::sregex_iterator iEnd;
+	auto hostnameSplitByDots=::splitByDelimiters( hostname, "." );
 
 	for( const auto& allowedHost : allowedList )
 	{
-		std::sregex_iterator iAllowedMatch( allowedHost.begin(), allowedHost.end(), wildcardRegex );
+		auto allowedHostSplitByDots=::splitByDelimiters( allowedHost, "." );
 		// Must be same number of dots
-		if( std::distance(iAllowedMatch,iEnd) != std::distance(iHostBegin,iEnd) ) continue;
+		if( hostnameSplitByDots.size()!=allowedHostSplitByDots.size() ) continue;
 
 		// Loop over dot separated elements of both, and check for either an exact match or asterisk.
-		std::sregex_iterator iHostMatch=iHostBegin;
-		for( ; iHostMatch!=iEnd && iAllowedMatch!=iEnd; ++iHostMatch, ++iAllowedMatch )
+		bool allElementsMatch=true;
+		for( auto iHost=hostnameSplitByDots.begin(),iAllowed=allowedHostSplitByDots.begin();
+			iHost!=hostnameSplitByDots.end() && iAllowed!=allowedHostSplitByDots.end();
+			++iHost, ++iAllowed )
 		{
 			// If any element breaks the rules, fail this allowedHost
-			if( iAllowedMatch->prefix() != "*" && iAllowedMatch->prefix()!=iHostMatch->prefix() ) break;
-
-			// Check to see if everything afterwards matches. For a lot of cases this acts
-			// as an early cut out, but for the final loop it's actually required since
-			// otherwise the bit after the last dot will never be checked.
-			if( iAllowedMatch->suffix()==iHostMatch->suffix()  ) return true;
+			if( *iAllowed != "*" && *iAllowed != *iHost )
+			{
+				allElementsMatch=false;
+				break;
+			}
 		}
+		if( allElementsMatch ) return true;
 	}
 
 	// If control got this far then there were no matches
 	return false;
 }
+/* This function breaks compatibility with gcc (regex requires gcc 5). Don't actually need it for now though.
 
 std::string communique::impl::hostnameFromURL( const std::string& URL )
 {
@@ -109,3 +150,4 @@ std::string communique::impl::hostnameFromURL( const std::string& URL )
 
 	return (*iResult)[2];
 }
+*/

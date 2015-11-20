@@ -38,6 +38,7 @@ SCENARIO( "Test that the checkHostname function works as expected", "[local][too
 	}
 }
 
+/* This function was removed because it breaks gcc less than 5 compatible. I'll re-enable the tests once I rewrite the code without std::regex
 SCENARIO( "Test that the hostnameFromURL function works as expected", "[local][tools][openssl]" )
 {
 	WHEN( "I check different URLs for the hostname 'google.com'" )
@@ -75,3 +76,4 @@ SCENARIO( "Test that the hostnameFromURL function works as expected", "[local][t
 	}
 
 }
+*/
