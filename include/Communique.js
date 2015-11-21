@@ -10,7 +10,7 @@ var CommuniqueClient = function( websocketUri )
 	this.INFO_STRING='\x02';
 	this.REQUESTERROR_STRING='\x03';
 	
-	this.websocket = new WebSocket(wsUri);
+	this.websocket = new WebSocket(websocketUri);
 	this.websocket.binaryType = 'arraybuffer';
 	this.websocket.onopen = this.handleOpen.bind(this);
 	this.websocket.onclose = this.handleClose.bind(this);
