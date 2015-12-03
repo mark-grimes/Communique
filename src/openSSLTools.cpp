@@ -139,15 +139,68 @@ bool communique::impl::checkHostname( const std::string& hostname, const std::ve
 	// If control got this far then there were no matches
 	return false;
 }
-/* This function breaks compatibility with gcc (regex requires gcc 5). Don't actually need it for now though.
 
 std::string communique::impl::hostnameFromURL( const std::string& URL )
 {
+	//
+	// Regular expression is not available in gcc less than 5 (headers are there earlier
+	// but with no implementation, so you get link errors). So I need to disable this solution
+	// and do it by hand.
+	//
+	/*
 	const std::regex hostnameRegex("^([_[:alnum:]]+://)?([_.[:alnum:]\\-]+)(:|/)?");
 
 	std::sregex_iterator iResult( URL.begin(), URL.end(), hostnameRegex );
 	if( iResult->size()!=4 ) throw std::runtime_error( "communique::impl::hostnameFromURL - invalid regex match in '"+URL+"'");
 
 	return (*iResult)[2];
+	*/
+	std::string hostname;
+	auto isUppercase=[](const char character){ return (character>='A' && character<='Z'); };
+	auto isLowercase=[](const char character){ return (character>='a' && character<='z'); };
+	auto isNumeric=[](const char character){ return (character>='0' && character<='9'); };
+	auto isAlphaNumeric=[&](const char character){ return isUppercase(character) || isLowercase(character) || isNumeric(character); };
+	auto isProtocol=[&](const char character){ return isAlphaNumeric(character) || character=='_'; };
+	auto isHostname=[&](const char character){ return isProtocol(character) || character=='.' || character=='-'; };
+	bool alreadyParsedProtocol=false;
+	bool alreadyInvalidProtocol=false;
+
+	for( std::string::const_iterator iChar=URL.begin(); iChar!=URL.end(); ++iChar )
+	{
+		if( !alreadyParsedProtocol )
+		{
+			if( isProtocol(*iChar) ) hostname+=*iChar; // Could be part of the hostname if there is no protocol
+			else if( isHostname(*iChar) )
+			{
+				hostname+=*iChar;
+				alreadyParsedProtocol=true; // Can't be part of the protocol anymore
+			}
+			else if( *iChar==':' )
+			{
+				// See if this is the start of "://"
+				if( std::distance(iChar,URL.end())>=3 )
+				{
+					if( *(++iChar)=='/' && *(++iChar)=='/' )
+					{
+						// This is the protocol separator, so clear what's been parsed so far
+						hostname.clear();
+						alreadyParsedProtocol=true;
+					}
+					else return hostname; // URL didn't have a valid protocol so this must be start of port
+				}
+				else return hostname; // URL didn't have enough characters for "://" so this must be end start of port number
+			}
+			else if( *iChar=='/' ) return hostname; // URL didn't have a valid protocol
+			else throw std::runtime_error( "hostnameFromURL called with string that has invalid characters" );
+		}
+		else
+		{
+			if( isHostname(*iChar) ) hostname+=*iChar;
+			else if( *iChar==':' ) return hostname; // must be start of port specifier
+			else if( *iChar=='/' ) return hostname; // URL didn't have a valid protocol
+			else throw std::runtime_error( "hostnameFromURL called with string that has invalid characters" );
+		}
+	}
+
+	return hostname;
 }
-*/

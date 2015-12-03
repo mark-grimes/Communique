@@ -97,7 +97,6 @@ namespace communique
 		 */
 		bool checkHostname( const std::string& hostname, const std::vector<std::string>& allowedList );
 
-		// This next function uses std::regex which does not work with gcc less than 5. Comment out until I rewrite without regex.
 		/** @brief Given a full URL, returns just the hostname.
 		 *
 		 * E.g. given "wss://www.example.com:443/foo/bar" returns "www.example.com".
@@ -105,7 +104,7 @@ namespace communique
 		 * @author Mark Grimes
 		 * @date 09/Aug/2015
 		 */
-		//std::string hostnameFromURL( const std::string& URL );
+		std::string hostnameFromURL( const std::string& URL );
 	} // end of namespace impl
 } // end of namespace communique
 
