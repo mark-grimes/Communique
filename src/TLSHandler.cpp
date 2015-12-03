@@ -28,6 +28,21 @@ void communique::impl::TLSHandler::setDiffieHellmanParamsFile( const std::string
 	diffieHellmanParamsFileName_=filename;
 }
 
+void communique::impl::TLSHandler::setUserVerification( const communique::impl::TLSHandler::UserVerificationFunction& userVerificationFunction )
+{
+	userVerification_=userVerificationFunction;
+}
+
+void communique::impl::TLSHandler::requireHostname( const std::string& hostname )
+{
+	requiredHostname_=hostname;
+}
+
+void communique::impl::TLSHandler::allowAnyHostname()
+{
+	requiredHostname_.clear();
+}
+
 websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::impl::TLSHandler::on_tls_init( websocketpp::connection_hdl hdl ) const
 {
 	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
@@ -58,7 +73,7 @@ bool communique::impl::TLSHandler::verify_certificate( bool preverified, boost::
 	int depth=X509_STORE_CTX_get_error_depth( pRawContext );
 
 	X509* pCurrentCertificate=X509_STORE_CTX_get_current_cert( pRawContext );
-	communique::impl::Certificate certificateDetails(pCurrentCertificate);
+	communique::impl::Certificate certificate(pCurrentCertificate);
 
 	/*
 	 * Catch a too long certificate chain. The depth limit set using
@@ -76,16 +91,52 @@ bool communique::impl::TLSHandler::verify_certificate( bool preverified, boost::
 		X509_STORE_CTX_set_error( pRawContext, errorCode );
 	}
 
+	std::string errorMessage;
+
 	if( !preverified )
 	{
-		std::string errorMessage="X509 verification error:"+std::to_string(errorCode)+":"+X509_verify_cert_error_string(errorCode)+":depth="+std::to_string(depth)+":subject="+certificateDetails.subject();
-		if( errorCode==X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT ) errorMessage+=":issuer="+certificateDetails.issuer();
-		logger_.write( websocketpp::log::alevel::debug_handshake, errorMessage );
+		errorMessage+=std::to_string(errorCode)+":"+X509_verify_cert_error_string(errorCode)+":";
+		if( errorCode==X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT ) errorMessage+="issuer='"+certificate.issuer()+"':";
 	}
-	else if( verbose )
+
+	// Always add this because if verbose is true it gets printed, even if there is no error.
+	errorMessage+="depth="+std::to_string(depth)+":subject='"+certificate.subject()+"'";
+
+	if( !requiredHostname_.empty() )
 	{
-		logger_.write( websocketpp::log::alevel::debug_handshake, "X509 verification depth="+std::to_string(depth)+":"+certificateDetails.subject() );
+		if( !certificate.hostnameMatches(requiredHostname_) )
+		{
+			preverified=false;
+			errorMessage+=":required hostname '"+requiredHostname_+"' does not match certificate";
+		}
+		else errorMessage+=":required hostname '"+requiredHostname_+"' matches certificate";
 	}
+
+	if( !certificate.dateIsValid() )
+	{
+		errorMessage+=":certificate date invalid";
+		preverified=false;
+	}
+
+	// If user has specified a custom verification function, run this
+	if( userVerification_ )
+	{
+		if( !userVerification_(preverified,certificate) )
+		{
+			errorMessage+=":user verification failed";
+			preverified=false;
+		}
+		else
+		{
+			// Warn if the user has decided to accept a certificate that otherwise would fail
+			if( !preverified ) errorMessage+=":user verification overriding previous failures";
+			else errorMessage+=":user verification succeeded";
+			preverified=true;
+		}
+	}
+
+	if( !preverified ) logger_.write( websocketpp::log::alevel::debug_handshake, "X509 verification error:"+errorMessage );
+	else if( verbose ) logger_.write( websocketpp::log::alevel::debug_handshake, "X509 verification info:"+errorMessage );
 
 	return preverified;
 }
