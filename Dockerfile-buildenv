@@ -1,0 +1,28 @@
+FROM ubuntu:14.04
+
+# Set the root password to something I know
+RUN echo "root:rootpassword" | chpasswd
+
+# Install dependencies
+RUN apt-get update -y
+RUN apt-get install -y libboost1.55-all-dev libssl-dev git cmake g++
+# Install docker. Note this will require running the container with 
+# "-v /var/run/docker.sock:/var/run/docker.sock" to be useful.
+RUN apt-get install -y docker.io
+
+# Switch to a non-root user
+RUN useradd -ms /bin/bash --groups docker ubuntu
+# Allow the user to run docker commands
+RUN echo "ubuntu ALL=(ALL) NOPASSWD: /usr/bin/docker" > /etc/sudoers.d/ubuntu
+USER ubuntu
+WORKDIR /home/ubuntu
+
+# Clone Communique, change the CMakeLists file (should probably make these changes on the repo)
+RUN git clone https://github.com/mark-grimes/Communique.git
+RUN sed s:"SET( Boost_USE_STATIC_LIBS ON )":"#SET( Boost_USE_STATIC_LIBS ON )":g ./Communique/CMakeLists.txt | sed s:"target_link_libraries( \${PROJECT_NAME} \${OPENSSL_LIBRARIES} )":"target_link_libraries( \${PROJECT_NAME} \${OPENSSL_LIBRARIES} )\ntarget_link_libraries( \${PROJECT_NAME} \"pthread\" )":g > temp.cmake && mv temp.cmake ./Communique/CMakeLists.txt
+
+# Then build
+RUN mkdir Communique/build && cd Communique/build && cmake .. && make
+
+CMD /bin/bash
+
