@@ -28,7 +28,7 @@ void communique::impl::TLSHandler::setDiffieHellmanParamsFile( const std::string
 	diffieHellmanParamsFileName_=filename;
 }
 
-websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::impl::TLSHandler::on_tls_init( websocketpp::connection_hdl hdl )
+websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::impl::TLSHandler::on_tls_init( websocketpp::connection_hdl hdl ) const
 {
 	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
 	pContext->set_options( boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use );
@@ -47,7 +47,7 @@ websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::impl::TLSHan
 	return pContext;
 }
 
-bool communique::impl::TLSHandler::verify_certificate( bool preverified, boost::asio::ssl::verify_context& context )
+bool communique::impl::TLSHandler::verify_certificate( bool preverified, boost::asio::ssl::verify_context& context ) const
 {
 	constexpr int maxDepth=8;
 	constexpr bool verbose=true;
