@@ -9,6 +9,7 @@
 #include <websocketpp/config/asio.hpp>
 #include "communique/impl/Connection.h"
 #include "communique/impl/TLSHandler.h"
+#include "communique/impl/openSSLTools.h"
 
 //
 // Declaration of the pimple
@@ -83,6 +84,10 @@ void communique::Client::connect( const std::string& URI )
 		pImple_->client_.get_alog().write(websocketpp::log::alevel::app,errorCode.message());
 		throw communique::impl::Exception( errorCode.message() );
 	}
+
+	// Tell the TLS handler what hostname to expect, so that it checks that against
+	// the certificate the server provides.
+	pImple_->tlsHandler_.requireHostname( communique::impl::hostnameFromURL(URI) );
 
 	pImple_->client_.connect( pImple_->pConnection_->underlyingPointer() );
 	pImple_->ioThread_=std::thread( &ClientPrivateMembers::client_type::run, &pImple_->client_ );
