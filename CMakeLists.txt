@@ -4,31 +4,31 @@
 # 31/Oct/2014
 #
 
-PROJECT( Communique )
+project( Communique )
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8)
 
-SET( ${PROJECT_NAME}_MAJOR_VERSION 0 )
-SET( ${PROJECT_NAME}_MINOR_VERSION 0 )
-SET( ${PROJECT_NAME}_PATCH_LEVEL 0 )
+set( ${PROJECT_NAME}_MAJOR_VERSION 0 )
+set( ${PROJECT_NAME}_MINOR_VERSION 0 )
+set( ${PROJECT_NAME}_PATCH_LEVEL 0 )
 
 
-ADD_DEFINITIONS( "-std=c++11" )
+add_definitions( "-std=c++11" )
 
 #
 # Download the source for WebSocket++ from github. Don't install it since it's
 # header only, just add the downloaded directory to the include path. 
 #
 include(ExternalProject)
-ExternalProject_Add( websocketpp
+externalproject_add( websocketpp
 	GIT_REPOSITORY https://github.com/mark-grimes/websocketpp.git
 	GIT_TAG addOriginalAsioError
 	CONFIGURE_COMMAND "" # Just using the source directory as an include directory
 	BUILD_COMMAND "" # Just using the source directory as an include directory
 	INSTALL_COMMAND "" # Don't want to install, it's header only
 )
-ExternalProject_Get_Property( websocketpp SOURCE_DIR )
-INCLUDE_DIRECTORIES( "${SOURCE_DIR}" )
+externalproject_get_property( websocketpp SOURCE_DIR )
+include_directories( "${SOURCE_DIR}" )
 
 if( ASIO_STANDALONE_PATH )
 	message( "Attempting to use standalone ASIO instead of boost from = ${ASIO_STANDALONE_PATH}" )
@@ -38,36 +38,36 @@ else()
 	#
 	# Find and add boost to the include directories
 	#
-	SET( Boost_USE_MULTITHREADED )
-	SET( Boost_USE_STATIC_LIBS ON )
-	FIND_PACKAGE( Boost REQUIRED COMPONENTS system )
-	#IF( NOT Boost_FOUND )
-	#	MESSAGE( FATAL_ERROR "Boost wasn't found. If boost is in a non standard path try adding "
+	set( Boost_USE_MULTITHREADED )
+	set( Boost_USE_STATIC_LIBS ON )
+	find_package( Boost REQUIRED COMPONENTS system )
+	#if( NOT Boost_FOUND )
+	#	message( FATAL_ERROR "Boost wasn't found. If boost is in a non standard path try adding "
 	#		"\"-DCMAKE_INCLUDE_PATH=<path to boost>\" and \"-DCMAKE_LIBRARY_PATH=<path to boost>\""
 	#		"to the cmake command"
 	#	)
-	#ENDIF()
-	Message( "Boost include directory = ${Boost_INCLUDE_DIR}" )
-	Message( "Boost libraries directory = ${Boost_LIBRARY_DIR}" )
-	Message( "Boost libraries directory = ${Boost_LIBRARIES}" )
-	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+	#endif()
+	message( "Boost include directory = ${Boost_INCLUDE_DIR}" )
+	message( "Boost libraries directory = ${Boost_LIBRARY_DIR}" )
+	message( "Boost libraries directory = ${Boost_LIBRARIES}" )
+	include_directories(${Boost_INCLUDE_DIR})
 endif()
 
 #
 # Find OpenSSL
 #
-FIND_PACKAGE( OpenSSL REQUIRED )
-INCLUDE_DIRECTORIES( ${OPENSSL_INCLUDE_DIR} )
+find_package( OpenSSL REQUIRED )
+include_directories( ${OPENSSL_INCLUDE_DIR} )
 
-Message( "OPENSSL_LIBRARIES = ${OPENSSL_LIBRARIES}" )
+message( "OPENSSL_LIBRARIES = ${OPENSSL_LIBRARIES}" )
 
-INCLUDE_DIRECTORIES( "${CMAKE_SOURCE_DIR}/include" )
-INCLUDE_DIRECTORIES( "${CMAKE_SOURCE_DIR}/privateinclude" )
-AUX_SOURCE_DIRECTORY( "${CMAKE_SOURCE_DIR}/src" library_sources )
+include_directories( "${CMAKE_SOURCE_DIR}/include" )
+include_directories( "${CMAKE_SOURCE_DIR}/privateinclude" )
+aux_source_directory( "${CMAKE_SOURCE_DIR}/src" library_sources )
 
 
-ADD_LIBRARY( ${PROJECT_NAME} SHARED ${library_sources} )
-ADD_DEPENDENCIES( ${PROJECT_NAME} websocketpp ) # Make sure WebSocket++ is downloaded before trying to build
+add_library( ${PROJECT_NAME} SHARED ${library_sources} )
+add_dependencies( ${PROJECT_NAME} websocketpp ) # Make sure WebSocket++ is downloaded before trying to build
 target_link_libraries( ${PROJECT_NAME} ${Boost_LIBRARIES} )
 target_link_libraries( ${PROJECT_NAME} ${OPENSSL_LIBRARIES} )
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
@@ -89,13 +89,13 @@ set( CONF_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include" )
 configure_file( ${PROJECT_NAME}Config.cmake.in
   "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY )
 
-OPTION( BUILD_UNITTESTS "Build unit tests" ON )
-MESSAGE( STATUS "BUILD_UNITTESTS: ${BUILD_UNITTESTS}" )
-IF( BUILD_UNITTESTS )
+option( BUILD_UNITTESTS "Build unit tests" ON )
+message( STATUS "BUILD_UNITTESTS: ${BUILD_UNITTESTS}" )
+if( BUILD_UNITTESTS )
 	# Fix the test configuration file to have the correct paths
-	CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/test/testinputs.cpp.in" "${PROJECT_SOURCE_DIR}/test/testinputs.cpp" @ONLY )
-	AUX_SOURCE_DIRECTORY( "test" unittests_sources )
-	AUX_SOURCE_DIRECTORY( "test/impl" unittests_sources )
-	ADD_EXECUTABLE( unitTests.exe ${unittests_sources} )
-	TARGET_LINK_LIBRARIES( unitTests.exe ${PROJECT_NAME} )
-ENDIF()
+	configure_file( "${PROJECT_SOURCE_DIR}/test/testinputs.cpp.in" "${PROJECT_SOURCE_DIR}/test/testinputs.cpp" @ONLY )
+	aux_source_directory( "test" unittests_sources )
+	aux_source_directory( "test/impl" unittests_sources )
+	add_executable( unitTests.exe ${unittests_sources} )
+	target_link_libraries( unitTests.exe ${PROJECT_NAME} )
+endif()
