@@ -70,6 +70,12 @@ ADD_LIBRARY( ${PROJECT_NAME} SHARED ${library_sources} )
 ADD_DEPENDENCIES( ${PROJECT_NAME} websocketpp ) # Make sure WebSocket++ is downloaded before trying to build
 target_link_libraries( ${PROJECT_NAME} ${Boost_LIBRARIES} )
 target_link_libraries( ${PROJECT_NAME} ${OPENSSL_LIBRARIES} )
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+	# For some reason linux gets "undefined reference to `pthread_create'" even though
+	# the code uses std::thread. Apparently ASIO sets some funny macros which directly
+	# call pthreads.
+	target_link_libraries( ${PROJECT_NAME} "pthread" )
+endif()
 
 install( TARGETS ${PROJECT_NAME} DESTINATION lib )
 install( DIRECTORY "${CMAKE_SOURCE_DIR}/include/" DESTINATION include )
