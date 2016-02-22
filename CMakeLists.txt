@@ -30,22 +30,28 @@ ExternalProject_Add( websocketpp
 ExternalProject_Get_Property( websocketpp SOURCE_DIR )
 INCLUDE_DIRECTORIES( "${SOURCE_DIR}" )
 
-#
-# Find and add boost to the include directories
-#
-SET( Boost_USE_MULTITHREADED )
-SET( Boost_USE_STATIC_LIBS ON )
-FIND_PACKAGE( Boost REQUIRED COMPONENTS system )
-#IF( NOT Boost_FOUND )
-#	MESSAGE( FATAL_ERROR "Boost wasn't found. If boost is in a non standard path try adding "
-#		"\"-DCMAKE_INCLUDE_PATH=<path to boost>\" and \"-DCMAKE_LIBRARY_PATH=<path to boost>\""
-#		"to the cmake command"
-#	)
-#ENDIF()
-Message( "Boost include directory = ${Boost_INCLUDE_DIR}" )
-Message( "Boost libraries directory = ${Boost_LIBRARY_DIR}" )
-Message( "Boost libraries directory = ${Boost_LIBRARIES}" )
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+if( ASIO_STANDALONE_PATH )
+	message( "Attempting to use standalone ASIO instead of boost from = ${ASIO_STANDALONE_PATH}" )
+	include_directories( ${ASIO_STANDALONE_PATH}/include )
+	add_definitions( "-DASIO_STANDALONE" )
+else()
+	#
+	# Find and add boost to the include directories
+	#
+	SET( Boost_USE_MULTITHREADED )
+	SET( Boost_USE_STATIC_LIBS ON )
+	FIND_PACKAGE( Boost REQUIRED COMPONENTS system )
+	#IF( NOT Boost_FOUND )
+	#	MESSAGE( FATAL_ERROR "Boost wasn't found. If boost is in a non standard path try adding "
+	#		"\"-DCMAKE_INCLUDE_PATH=<path to boost>\" and \"-DCMAKE_LIBRARY_PATH=<path to boost>\""
+	#		"to the cmake command"
+	#	)
+	#ENDIF()
+	Message( "Boost include directory = ${Boost_INCLUDE_DIR}" )
+	Message( "Boost libraries directory = ${Boost_LIBRARY_DIR}" )
+	Message( "Boost libraries directory = ${Boost_LIBRARIES}" )
+	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+endif()
 
 #
 # Find OpenSSL

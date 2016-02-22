@@ -28,26 +28,27 @@ void communique::impl::TLSHandler::setDiffieHellmanParamsFile( const std::string
 	diffieHellmanParamsFileName_=filename;
 }
 
-websocketpp::lib::shared_ptr<boost::asio::ssl::context> communique::impl::TLSHandler::on_tls_init( websocketpp::connection_hdl hdl ) const
+websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> communique::impl::TLSHandler::on_tls_init( websocketpp::connection_hdl hdl ) const
 {
-	websocketpp::lib::shared_ptr<boost::asio::ssl::context> pContext( new boost::asio::ssl::context(boost::asio::ssl::context::tlsv1) );
-	pContext->set_options( boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use );
-	//pContext->set_password_callback( boost::bind( &server::get_password, this ) );
+	namespace asio=websocketpp::lib::asio;
+	websocketpp::lib::shared_ptr<asio::ssl::context> pContext( new asio::ssl::context(asio::ssl::context::tlsv1) );
+	pContext->set_options( asio::ssl::context::default_workarounds | asio::ssl::context::no_sslv2 | asio::ssl::context::single_dh_use );
+	//pContext->set_password_callback( websocketpp::lib::bind( &server::get_password, this ) );
 	if( !certificateChainFileName_.empty() ) pContext->use_certificate_chain_file( certificateChainFileName_ );
-	if( !privateKeyFileName_.empty() ) pContext->use_private_key_file( privateKeyFileName_, boost::asio::ssl::context::pem );
+	if( !privateKeyFileName_.empty() ) pContext->use_private_key_file( privateKeyFileName_, asio::ssl::context::pem );
 	if( !verifyFileName_.empty() )
 	{
-		pContext->set_verify_mode( boost::asio::ssl::verify_peer | boost::asio::ssl::verify_fail_if_no_peer_cert );
+		pContext->set_verify_mode( asio::ssl::verify_peer | asio::ssl::verify_fail_if_no_peer_cert );
 		pContext->load_verify_file( verifyFileName_ );
 		pContext->set_verify_callback( std::bind( &TLSHandler::verify_certificate, this, std::placeholders::_1, std::placeholders::_2 ) );
 	}
-	else pContext->set_verify_mode( boost::asio::ssl::verify_none );
+	else pContext->set_verify_mode( asio::ssl::verify_none );
 	if( !diffieHellmanParamsFileName_.empty() ) pContext->use_tmp_dh_file( diffieHellmanParamsFileName_ );
 
 	return pContext;
 }
 
-bool communique::impl::TLSHandler::verify_certificate( bool preverified, boost::asio::ssl::verify_context& context ) const
+bool communique::impl::TLSHandler::verify_certificate( bool preverified, websocketpp::lib::asio::ssl::verify_context& context ) const
 {
 	constexpr int maxDepth=8;
 	constexpr bool verbose=true;

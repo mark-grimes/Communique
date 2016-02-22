@@ -25,8 +25,8 @@ namespace communique
 			void setVerifyFile( const std::string& filename );
 			void setDiffieHellmanParamsFile( const std::string& filename );
 
-			std::shared_ptr<boost::asio::ssl::context> on_tls_init( websocketpp::connection_hdl hdl ) const;
-			bool verify_certificate( bool preverified, boost::asio::ssl::verify_context& context ) const;
+			std::shared_ptr<websocketpp::lib::asio::ssl::context> on_tls_init( websocketpp::connection_hdl hdl ) const;
+			bool verify_certificate( bool preverified, websocketpp::lib::asio::ssl::verify_context& context ) const;
 		protected:
 			std::string certificateChainFileName_;
 			std::string privateKeyFileName_;
