@@ -5,6 +5,20 @@
 #include <mutex>
 #include <iostream>
 
+// Windows has some ridiculous macros defined that interfere with e.g. std::numeric_limits<int>::min().
+// See for example http://stackoverflow.com/questions/5004858/stdmin-gives-error. Presumably non-windows
+// systems won't have these defines and this code will be skipped implicitly.
+#ifdef max
+#	pragma push_macro("max")
+#	undef max
+#	define NEED_TO_RESET_MAX_MACRO
+#endif
+#ifdef min
+#	pragma push_macro("min")
+#	undef min
+#	define NEED_TO_RESET_MIN_MACRO
+#endif
+
 namespace communique
 {
 
@@ -202,6 +216,16 @@ std::pair<T_Token,typename std::list< std::pair<T_Token,T_Element> >::iterator> 
 		} // end of "else" for "if can't increase the last token"
 	} // end of "else" for "if empty"
 }
+
+// If this is windows, check if the macros undefined at the start need to be reset
+#ifdef NEED_TO_RESET_MAX_MACRO
+#	pragma pop_macro("max")
+#	undef NEED_TO_RESET_MAX_MACRO
+#endif
+#ifdef NEED_TO_RESET_MIN_MACRO
+#	pragma pop_macro("min")
+#	undef NEED_TO_RESET_MIN_MACRO
+#endif
 
 
 #endif // end of ifndef communique_impl_UniqueTokenStorage_h

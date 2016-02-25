@@ -12,8 +12,9 @@ set( ${PROJECT_NAME}_MAJOR_VERSION 0 )
 set( ${PROJECT_NAME}_MINOR_VERSION 0 )
 set( ${PROJECT_NAME}_PATCH_LEVEL 0 )
 
-
-add_definitions( "-std=c++11" )
+if( NOT MSVC ) # Microsoft Visual Studio is C++11 by default and doesn't recognise this flag
+	add_definitions( "-std=c++11" )
+endif()
 
 #
 # Download the source for WebSocket++ from github. Don't install it since it's
@@ -33,7 +34,8 @@ include_directories( "${SOURCE_DIR}" )
 if( ASIO_STANDALONE_PATH )
 	message( "Attempting to use standalone ASIO instead of boost from = ${ASIO_STANDALONE_PATH}" )
 	include_directories( ${ASIO_STANDALONE_PATH}/include )
-	add_definitions( "-DASIO_STANDALONE" )
+	# tell websocketpp to use asio standalone, and full C++11 support instead of boost stand-ins
+	add_definitions( "-DASIO_STANDALONE -D_WEBSOCKETPP_CPP11_STRICT_" )
 else()
 	#
 	# Find and add boost to the include directories
