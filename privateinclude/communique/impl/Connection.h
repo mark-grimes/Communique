@@ -35,6 +35,7 @@ namespace communique
 		public:
 			Connection( connection_ptr pConnection );
 			Connection( connection_ptr pConnection, std::function<void(const std::string&)>& infoHandler, std::function<std::string(const std::string&)>& requestHandler );
+			Connection( connection_ptr pConnection, std::function<void(const std::string&,communique::IConnection*)>& infoHandler, std::function<std::string(const std::string&,communique::IConnection*)>& requestHandler );
 			virtual ~Connection();
 
 			virtual void sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler ) override;
@@ -56,10 +57,8 @@ namespace communique
 			void close();
 		private:
 			connection_ptr pConnection_;
-			std::function<void(const std::string&)> infoHandler_; ///< Only one info handler will be non-null
-			std::function<void(const std::string&,communique::IConnection*)> infoHandlerAdvanced_;
-			std::function<std::string(const std::string&)> requestHandler_; ///< Only one request handler will be non-null
-			std::function<std::string(const std::string&,communique::IConnection*)> requestHandlerAdvanced_;
+			std::function<void(const std::string&,communique::IConnection*)> infoHandler_;
+			std::function<std::string(const std::string&,communique::IConnection*)> requestHandler_;
 			/// This keeps track of the user references and associated handler for all requests
 			/// sent but without a response received.
 //			std::list< std::pair<communique::impl::Message::UserReference,std::function<void(const std::string&)> > > responseHandlers_;

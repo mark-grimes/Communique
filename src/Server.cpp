@@ -30,10 +30,8 @@ namespace communique
 		void on_close( websocketpp::connection_hdl hdl );
 		void on_interrupt( websocketpp::connection_hdl hdl );
 
-		std::function<void(const std::string&)> defaultInfoHandler_;
-		std::function<void(const std::string&,communique::IConnection*)> defaultInfoHandlerAdvanced_;
-		std::function<std::string(const std::string&)> defaultRequestHandler_;
-		std::function<std::string(const std::string&,communique::IConnection*)> defaultRequestHandlerAdvanced_;
+		std::function<void(const std::string&,communique::IConnection*)> defaultInfoHandler_;
+		std::function<std::string(const std::string&,communique::IConnection*)> defaultRequestHandler_;
 	};
 }
 
@@ -130,26 +128,24 @@ void communique::Server::setDiffieHellmanParamsFile( const std::string& filename
 
 void communique::Server::setDefaultInfoHandler( std::function<void(const std::string&)> infoHandler )
 {
-	pImple_->defaultInfoHandler_=infoHandler;
-	pImple_->defaultInfoHandlerAdvanced_=nullptr;
+	// Wrap in a function that drops the connection argument
+	pImple_->defaultInfoHandler_=std::bind( infoHandler, std::placeholders::_1 );
 }
 
 void communique::Server::setDefaultInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler )
 {
-	pImple_->defaultInfoHandler_=nullptr;
-	pImple_->defaultInfoHandlerAdvanced_=infoHandler;
+	pImple_->defaultInfoHandler_=infoHandler;
 }
 
 void communique::Server::setDefaultRequestHandler( std::function<std::string(const std::string&)> requestHandler )
 {
-	pImple_->defaultRequestHandler_=requestHandler;
-	pImple_->defaultRequestHandlerAdvanced_=nullptr;
+	// Wrap in a function that drops the connection argument
+	pImple_->defaultRequestHandler_=std::bind( requestHandler, std::placeholders::_1 );
 }
 
 void communique::Server::setDefaultRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler )
 {
-	pImple_->defaultRequestHandler_=nullptr;
-	pImple_->defaultRequestHandlerAdvanced_=requestHandler;
+	pImple_->defaultRequestHandler_=requestHandler;
 }
 
 std::vector<std::shared_ptr<communique::IConnection> > communique::Server::currentConnections()
@@ -189,10 +185,6 @@ void communique::ServerPrivateMembers::on_open( websocketpp::connection_hdl hdl 
 {
 	std::lock_guard<std::mutex> myMutex( currentConnectionsMutex_ );
 	currentConnections_.emplace_back( new communique::impl::Connection( server_.get_con_from_hdl(hdl), defaultInfoHandler_, defaultRequestHandler_ ) );
-	// If "advanced" handlers have beed set (just has IConnection* as additional argument)
-	// change the handler to these.
-	if( defaultInfoHandlerAdvanced_ ) currentConnections_.back()->setInfoHandler(defaultInfoHandlerAdvanced_);
-	if( defaultRequestHandlerAdvanced_ ) currentConnections_.back()->setRequestHandler(defaultRequestHandlerAdvanced_);
 }
 
 void communique::ServerPrivateMembers::on_close( websocketpp::connection_hdl hdl )

@@ -22,6 +22,14 @@ communique::impl::Connection::Connection( connection_ptr pConnection, std::funct
 	setRequestHandler( requestHandler );
 }
 
+communique::impl::Connection::Connection( connection_ptr pConnection, std::function<void(const std::string&,communique::IConnection*)>& infoHandler, std::function<std::string(const std::string&,communique::IConnection*)>& requestHandler )
+	: pConnection_(pConnection)
+{
+	pConnection_->set_message_handler( std::bind( &communique::impl::Connection::on_message, this, std::placeholders::_1, std::placeholders::_2 ) );
+	setInfoHandler( infoHandler );
+	setRequestHandler( requestHandler );
+}
+
 communique::impl::Connection::~Connection()
 {
 
@@ -47,26 +55,24 @@ void communique::impl::Connection::sendInfo( const std::string& message )
 
 void communique::impl::Connection::setInfoHandler( std::function<void(const std::string&)> infoHandler )
 {
-	infoHandler_=infoHandler;
-	infoHandlerAdvanced_=nullptr;
+	// Wrap in a function that drops the connection argument
+	infoHandler_=std::bind( infoHandler, std::placeholders::_1 );;
 }
 
 void communique::impl::Connection::setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler )
 {
-	infoHandler_=nullptr;
-	infoHandlerAdvanced_=infoHandler;
+	infoHandler_=infoHandler;
 }
 
 void communique::impl::Connection::setRequestHandler( std::function<std::string(const std::string&)> requestHandler )
 {
-	requestHandler_=requestHandler;
-	requestHandlerAdvanced_=nullptr;
+	// Wrap in a function that drops the connection argument
+	requestHandler_=std::bind( requestHandler, std::placeholders::_1 );
 }
 
 void communique::impl::Connection::setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler )
 {
-	requestHandler_=nullptr;
-	requestHandlerAdvanced_=requestHandler;
+	requestHandler_=requestHandler;
 }
 
 communique::impl::Connection::connection_ptr& communique::impl::Connection::underlyingPointer()
@@ -129,13 +135,12 @@ void communique::impl::Connection::on_message( websocketpp::connection_hdl hdl, 
 
 	if( receivedMessage.type()==communique::impl::Message::INFO )
 	{
-		if( infoHandler_ ) infoHandler_( receivedMessage.messageBody() );
-		else if( infoHandlerAdvanced_ ) infoHandlerAdvanced_( receivedMessage.messageBody(), this );
+		if( infoHandler_ ) infoHandler_( receivedMessage.messageBody(), this );
 		else std::cout << "Ignoring info message '" << receivedMessage.messageBody() << "'" << std::endl;
 	}
 	else if( receivedMessage.type()==communique::impl::Message::REQUEST )
 	{
-		if( requestHandler_ || requestHandlerAdvanced_ )
+		if( requestHandler_ )
 		{
 			std::async( std::launch::async, [ this, receivedMessage ]() // Copy receivedMessage by value because internally it holds a shared_ptr to the message
 			{
@@ -143,8 +148,7 @@ void communique::impl::Connection::on_message( websocketpp::connection_hdl hdl, 
 				communique::impl::Message::MessageType responseType=communique::impl::Message::RESPONSE;
 				try
 				{
-					if( requestHandler_ ) handlerResponse=requestHandler_( receivedMessage.messageBody() );
-					else handlerResponse=requestHandlerAdvanced_( receivedMessage.messageBody(), this );
+					handlerResponse=requestHandler_( receivedMessage.messageBody(), this );
 				}
 				catch( std::exception& error )
 				{

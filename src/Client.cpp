@@ -26,10 +26,8 @@ namespace communique
 		std::unique_ptr<communique::impl::Connection> pConnection_;
 		communique::impl::TLSHandler tlsHandler_;
 
-		std::function<void(const std::string&)> infoHandler_;
-		std::function<void(const std::string&,communique::IConnection*)> infoHandlerAdvanced_;
-		std::function<std::string(const std::string&)> requestHandler_;
-		std::function<std::string(const std::string&,communique::IConnection*)> requestHandlerAdvanced_;
+		std::function<void(const std::string&,communique::IConnection*)> infoHandler_;
+		std::function<std::string(const std::string&,communique::IConnection*)> requestHandler_;
 
 		void on_open( websocketpp::connection_hdl hdl );
 		void on_close( websocketpp::connection_hdl hdl );
@@ -73,10 +71,6 @@ void communique::Client::connect( const std::string& URI )
 	auto pWebPPConnection=pImple_->client_.get_connection( URI, errorCode );
 	if( errorCode.value()!=0 ) throw std::runtime_error( "Unable to get the websocketpp connection - "+errorCode.message() );
 	pImple_->pConnection_.reset( new communique::impl::Connection( pWebPPConnection, pImple_->infoHandler_, pImple_->requestHandler_ ) );
-	// If "advanced" handlers have beed set (just has IConnection* as additional argument)
-	// change the handler to these.
-	if( pImple_->infoHandlerAdvanced_ ) pImple_->pConnection_->setInfoHandler(pImple_->infoHandlerAdvanced_);
-	if( pImple_->requestHandlerAdvanced_ ) pImple_->pConnection_->setRequestHandler(pImple_->requestHandlerAdvanced_);
 
 	if( errorCode )
 	{
@@ -135,41 +129,39 @@ void communique::Client::sendInfo( const std::string& message )
 
 void communique::Client::setInfoHandler( std::function<void(const std::string&)> infoHandler )
 {
-	pImple_->infoHandler_=infoHandler;
-	pImple_->infoHandlerAdvanced_=nullptr;
+	// Wrap in a function that drops the connection argument
+	pImple_->infoHandler_=std::bind( infoHandler, std::placeholders::_1 );
 	if( pImple_->pConnection_ )
 	{
-		pImple_->pConnection_->setInfoHandler( infoHandler );
+		pImple_->pConnection_->setInfoHandler( pImple_->infoHandler_ );
 	}
 }
 
 void communique::Client::setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler )
 {
-	pImple_->infoHandler_=nullptr;
-	pImple_->infoHandlerAdvanced_=infoHandler;
+	pImple_->infoHandler_=infoHandler;
 	if( pImple_->pConnection_ )
 	{
-		pImple_->pConnection_->setInfoHandler( infoHandler );
+		pImple_->pConnection_->setInfoHandler( pImple_->infoHandler_ );
 	}
 }
 
 void communique::Client::setRequestHandler( std::function<std::string(const std::string&)> requestHandler )
 {
-	pImple_->requestHandler_=requestHandler;
-	pImple_->requestHandlerAdvanced_=nullptr;
+	// Wrap in a function that drops the connection argument
+	pImple_->requestHandler_=std::bind( requestHandler, std::placeholders::_1 );
 	if( pImple_->pConnection_ )
 	{
-		pImple_->pConnection_->setRequestHandler( requestHandler );
+		pImple_->pConnection_->setRequestHandler( pImple_->requestHandler_ );
 	}
 }
 
 void communique::Client::setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler )
 {
-	pImple_->requestHandler_=nullptr;
-	pImple_->requestHandlerAdvanced_=requestHandler;
+	pImple_->requestHandler_=requestHandler;
 	if( pImple_->pConnection_ )
 	{
-		pImple_->pConnection_->setRequestHandler( requestHandler );
+		pImple_->pConnection_->setRequestHandler( pImple_->requestHandler_ );
 	}
 }
 
