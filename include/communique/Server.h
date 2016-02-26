@@ -39,8 +39,8 @@ namespace communique
 
 		void setDefaultInfoHandler( std::function<void(const std::string&)> infoHandler );
 		void setDefaultInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler );
-		void setDefaultRequestHandler( std::function<const std::string(const std::string&)> requestHandler );
-		void setDefaultRequestHandler( std::function<const std::string(const std::string&,communique::IConnection*)> requestHandler );
+		void setDefaultRequestHandler( std::function<std::string(const std::string&)> requestHandler );
+		void setDefaultRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler );
 
 		std::vector<std::shared_ptr<communique::IConnection> > currentConnections();
 

@@ -140,13 +140,13 @@ void communique::Server::setDefaultInfoHandler( std::function<void(const std::st
 	pImple_->defaultInfoHandlerAdvanced_=infoHandler;
 }
 
-void communique::Server::setDefaultRequestHandler( std::function<const std::string(const std::string&)> requestHandler )
+void communique::Server::setDefaultRequestHandler( std::function<std::string(const std::string&)> requestHandler )
 {
 	pImple_->defaultRequestHandler_=requestHandler;
 	pImple_->defaultRequestHandlerAdvanced_=nullptr;
 }
 
-void communique::Server::setDefaultRequestHandler( std::function<const std::string(const std::string&,communique::IConnection*)> requestHandler )
+void communique::Server::setDefaultRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler )
 {
 	pImple_->defaultRequestHandler_=nullptr;
 	pImple_->defaultRequestHandlerAdvanced_=requestHandler;
