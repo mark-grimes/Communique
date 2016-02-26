@@ -23,9 +23,41 @@ SCENARIO( "Test that x509 certificates can be loaded and details retrieved prope
 			CHECK( pTestCertificate->subjectRDN("O",0)=="Test Server" );
 			CHECK( pTestCertificate->subjectRDNEntries("CN")==1 );
 			CHECK( pTestCertificate->subjectRDN("CN",0)=="www.testserver.com" );
-
-			// I guess at some point these tests are going to stop working
+		}
+		WHEN( "I check the date of the certificate. This certificate should be valid until June 2026 after which this test will (should) break." )
+		{
+			// When I created this test certificate I gave it 10 years, so
+			// this test should keep working for a while yet.
 			CHECK( pTestCertificate->dateIsValid() );
+		}
+	}
+
+	GIVEN( "An expired certificate loaded from the test directory" )
+	{
+		std::unique_ptr<communique::impl::Certificate> pTestCertificate; // Need to use a pointer because I want the constructor in a test condition
+		REQUIRE_NOTHROW( pTestCertificate.reset( new communique::impl::Certificate( testinputs::testFileDirectory+"expired_server_cert.pem" ) ) );
+
+		// This certificate was originally "server_cert.pem" for the test above, but
+		// then it expired (after which I issued the test certificate for ten years).
+		// Hence all of the details should be the same as for the test above except
+		// for the date.
+		WHEN( "I check the subject, issuer, etcetera" )
+		{
+			CHECK( pTestCertificate->issuer()=="/C=AU/ST=Some-State/O=Test Certificate Authority/CN=Test Certificate Authority" );
+			CHECK( pTestCertificate->subject()=="/C=AU/ST=Some-State/O=Test Server/CN=www.testserver.com" );
+			CHECK( pTestCertificate->subjectRDNEntries("C")==1 );
+			CHECK( pTestCertificate->subjectRDN("C",0)=="AU" );
+			CHECK( pTestCertificate->subjectRDNEntries("ST")==1 );
+			CHECK( pTestCertificate->subjectRDN("ST",0)=="Some-State" );
+			CHECK( pTestCertificate->subjectRDNEntries("O")==1 );
+			CHECK( pTestCertificate->subjectRDN("O",0)=="Test Server" );
+			CHECK( pTestCertificate->subjectRDNEntries("CN")==1 );
+			CHECK( pTestCertificate->subjectRDN("CN",0)=="www.testserver.com" );
+		}
+		WHEN( "I check the date of a certificate that expired in February 2016" )
+		{
+			// This certificate expired in February 2016
+			CHECK( !pTestCertificate->dateIsValid() );
 		}
 	}
 
@@ -60,8 +92,14 @@ SCENARIO( "Test that x509 certificates can be loaded and details retrieved prope
 			REQUIRE_NOTHROW( testString=pTestCertificate->subjectRDN("CN",0) );
 			CHECK( testString=="google.com" );
 
-			// I guess at some point these tests are going to stop working
-			CHECK( pTestCertificate->dateIsValid() );
+		}
+
+		WHEN( "I check the date of the certificate. This certificate should now be expired." )
+		{
+			// The certificate I downloaded a while back has now become obsolete, so the date
+			// should be invalid. I don't think it's worth continually updating the certificate
+			// in the testFileDirectory so I'll change the test to check that the date is invalid.
+			CHECK( !pTestCertificate->dateIsValid() );
 		}
 
 		WHEN( "I check hostname matches in a wildcard certificate" )
