@@ -13,11 +13,11 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 	GIVEN( "A Client and server" )
 	{
 		communique::Server myServer;
-		myServer.setCertificateChainFile( testinputs::testFileDirectory+"old/server.pem" );
-		myServer.setPrivateKeyFile( testinputs::testFileDirectory+"old/server.pem" );
+		myServer.setCertificateChainFile( testinputs::testFileDirectory+"server_cert.pem" );
+		myServer.setPrivateKeyFile( testinputs::testFileDirectory+"server_key.pem" );
 
 		communique::Client myClient;
-		myClient.setVerifyFile( testinputs::testFileDirectory+"old/rootCA.pem" );
+		myClient.setVerifyFile( testinputs::testFileDirectory+"certificateAuthority_cert.pem" );
 
 		WHEN( "I start a server listening and try and connect a client to it" )
 		{
