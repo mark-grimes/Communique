@@ -178,7 +178,7 @@ void communique::impl::Connection::on_message( websocketpp::connection_hdl hdl, 
 		std::function<void(const std::string&)> responseHandler;
 		if( responseHandlers_.pop( receivedMessage.userReference(), responseHandler ) )
 		{
-			std::async( responseHandler, receivedMessage.messageBody() );
+			std::async( std::launch::async, responseHandler, receivedMessage.messageBody() );
 		}
 		else // response handler was not found in the list for the userReference
 		{
