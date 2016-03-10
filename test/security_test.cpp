@@ -128,3 +128,32 @@ SCENARIO( "Test that client authentication works", "[security][local]" )
 		}
 	}
 }
+
+SCENARIO( "Test that authentication fails when the server certificate has expired", "[security][local]" )
+{
+	GIVEN( "A Client and server" )
+	{
+		communique::Server myServer;
+		myServer.setCertificateChainFile( testinputs::testFileDirectory+"expired_server_cert.pem" );
+		myServer.setPrivateKeyFile( testinputs::testFileDirectory+"server_key.pem" );
+		myServer.setVerifyFile( testinputs::testFileDirectory+"certificateAuthority_cert.pem" );
+
+		communique::Client myClient;
+		myClient.setCertificateChainFile( testinputs::testFileDirectory+"client_cert.pem" );
+		myClient.setPrivateKeyFile( testinputs::testFileDirectory+"client_key.pem" );
+		myClient.setVerifyFile( testinputs::testFileDirectory+"certificateAuthority_cert.pem" );
+
+		WHEN( "I start a server listening and try and connect a client to it" )
+		{
+			REQUIRE_NOTHROW( myServer.listen( ++testinputs::portNumber ) );
+			std::this_thread::sleep_for( testinputs::shortWait );
+
+			REQUIRE_NOTHROW( myClient.connect( "ws://localhost:"+std::to_string(testinputs::portNumber) ) );
+
+			REQUIRE( !myClient.isConnected() );
+
+			REQUIRE_NOTHROW( myClient.disconnect() );
+			REQUIRE_NOTHROW( myServer.stop() );
+		}
+	}
+}
