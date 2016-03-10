@@ -110,8 +110,8 @@ SCENARIO( "Test that client authentication works", "[security][local]" )
 		myServer.setVerifyFile( testinputs::testFileDirectory+"certificateAuthority_cert.pem" );
 
 		communique::Client myClient;
-		myClient.setCertificateChainFile( testinputs::testFileDirectory+"server_cert.pem" );
-		myClient.setPrivateKeyFile( testinputs::testFileDirectory+"server_key.pem" );
+		myClient.setCertificateChainFile( testinputs::testFileDirectory+"client_cert.pem" );
+		myClient.setPrivateKeyFile( testinputs::testFileDirectory+"client_key.pem" );
 		myClient.setVerifyFile( testinputs::testFileDirectory+"certificateAuthority_cert.pem" );
 
 		WHEN( "I start a server listening and try and connect a client to it" )
