@@ -26,7 +26,7 @@ namespace communique
 		 * @author Mark Grimes (kknb1056@gmail.com)
 		 * @date 30/Sep/2014
 		 */
-		class Connection : public communique::IConnection
+		class Connection : public communique::IConnection, public std::enable_shared_from_this<Connection>
 		{
 		public:
 			typedef websocketpp::connection<websocketpp::config::asio_tls>::ptr connection_ptr;
@@ -35,15 +35,15 @@ namespace communique
 		public:
 			Connection( connection_ptr pConnection );
 			Connection( connection_ptr pConnection, std::function<void(const std::string&)>& infoHandler, std::function<std::string(const std::string&)>& requestHandler );
-			Connection( connection_ptr pConnection, std::function<void(const std::string&,communique::IConnection*)>& infoHandler, std::function<std::string(const std::string&,communique::IConnection*)>& requestHandler );
+			Connection( connection_ptr pConnection, std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)>& infoHandler, std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)>& requestHandler );
 			virtual ~Connection();
 
 			virtual void sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler ) override;
 			virtual void sendInfo( const std::string& message ) override;
 			virtual void setInfoHandler( std::function<void(const std::string&)> infoHandler ) override;
-			virtual void setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler ) override;
+			virtual void setInfoHandler( std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> infoHandler ) override;
 			virtual void setRequestHandler( std::function<std::string(const std::string&)> requestHandler ) override;
-			virtual void setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler ) override;
+			virtual void setRequestHandler( std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler ) override;
 
 			connection_ptr& underlyingPointer();
 			/// @brief Returns true if the connection is established. If status is "connecting" blocks until the status changes.
@@ -57,8 +57,8 @@ namespace communique
 			void close();
 		private:
 			connection_ptr pConnection_;
-			std::function<void(const std::string&,communique::IConnection*)> infoHandler_;
-			std::function<std::string(const std::string&,communique::IConnection*)> requestHandler_;
+			std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> infoHandler_;
+			std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler_;
 			/// This keeps track of the user references and associated handler for all requests
 			/// sent but without a response received.
 //			std::list< std::pair<communique::impl::Message::UserReference,std::function<void(const std::string&)> > > responseHandlers_;

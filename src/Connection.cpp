@@ -22,7 +22,7 @@ communique::impl::Connection::Connection( connection_ptr pConnection, std::funct
 	setRequestHandler( requestHandler );
 }
 
-communique::impl::Connection::Connection( connection_ptr pConnection, std::function<void(const std::string&,communique::IConnection*)>& infoHandler, std::function<std::string(const std::string&,communique::IConnection*)>& requestHandler )
+communique::impl::Connection::Connection( connection_ptr pConnection, std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)>& infoHandler, std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)>& requestHandler )
 	: pConnection_(pConnection)
 {
 	pConnection_->set_message_handler( std::bind( &communique::impl::Connection::on_message, this, std::placeholders::_1, std::placeholders::_2 ) );
@@ -59,7 +59,7 @@ void communique::impl::Connection::setInfoHandler( std::function<void(const std:
 	infoHandler_=std::bind( infoHandler, std::placeholders::_1 );;
 }
 
-void communique::impl::Connection::setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler )
+void communique::impl::Connection::setInfoHandler( std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> infoHandler )
 {
 	infoHandler_=infoHandler;
 }
@@ -70,7 +70,7 @@ void communique::impl::Connection::setRequestHandler( std::function<std::string(
 	requestHandler_=std::bind( requestHandler, std::placeholders::_1 );
 }
 
-void communique::impl::Connection::setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler )
+void communique::impl::Connection::setRequestHandler( std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler )
 {
 	requestHandler_=requestHandler;
 }
@@ -135,7 +135,7 @@ void communique::impl::Connection::on_message( websocketpp::connection_hdl hdl, 
 
 	if( receivedMessage.type()==communique::impl::Message::INFO )
 	{
-		if( infoHandler_ ) infoHandler_( receivedMessage.messageBody(), this );
+		if( infoHandler_ ) infoHandler_( receivedMessage.messageBody(), shared_from_this() );
 		else std::cout << "Ignoring info message '" << receivedMessage.messageBody() << "'" << std::endl;
 	}
 	else if( receivedMessage.type()==communique::impl::Message::REQUEST )
@@ -148,7 +148,7 @@ void communique::impl::Connection::on_message( websocketpp::connection_hdl hdl, 
 				communique::impl::Message::MessageType responseType=communique::impl::Message::RESPONSE;
 				try
 				{
-					handlerResponse=requestHandler_( receivedMessage.messageBody(), this );
+					handlerResponse=requestHandler_( receivedMessage.messageBody(), shared_from_this() );
 				}
 				catch( std::exception& error )
 				{

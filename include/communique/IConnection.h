@@ -2,6 +2,7 @@
 #define communique_IConnection_h
 
 #include <functional>
+#include <memory>
 
 namespace communique
 {
@@ -33,11 +34,11 @@ namespace communique
 
 		/** @brief Sets the function that will be notified when information comes in (no response required) */
 		virtual void setInfoHandler( std::function<void(const std::string&)> infoHandler ) = 0;
-		virtual void setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler ) = 0;
+		virtual void setInfoHandler( std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> infoHandler ) = 0;
 
 		/** @brief Sets the function that will be notified when requests come in (response required) */
 		virtual void setRequestHandler( std::function<std::string(const std::string&)> requestHandler ) = 0;
-		virtual void setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler ) = 0;
+		virtual void setRequestHandler( std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler ) = 0;
 	};
 
 } // end of namespace communique

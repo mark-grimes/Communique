@@ -38,9 +38,9 @@ namespace communique
 		void setDiffieHellmanParamsFile( const std::string& filename );
 
 		void setDefaultInfoHandler( std::function<void(const std::string&)> infoHandler );
-		void setDefaultInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler );
+		void setDefaultInfoHandler( std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> infoHandler );
 		void setDefaultRequestHandler( std::function<std::string(const std::string&)> requestHandler );
-		void setDefaultRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler );
+		void setDefaultRequestHandler( std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler );
 
 		std::vector<std::shared_ptr<communique::IConnection> > currentConnections();
 

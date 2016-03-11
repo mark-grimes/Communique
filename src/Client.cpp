@@ -23,11 +23,11 @@ namespace communique
 		ClientPrivateMembers() : tlsHandler_(client_.get_alog()) { /*No operation besides initialiser list*/ }
 		client_type client_;
 		std::thread ioThread_;
-		std::unique_ptr<communique::impl::Connection> pConnection_;
+		std::shared_ptr<communique::impl::Connection> pConnection_; // Needs to be shared rather than unique because it's passed to handlers
 		communique::impl::TLSHandler tlsHandler_;
 
-		std::function<void(const std::string&,communique::IConnection*)> infoHandler_;
-		std::function<std::string(const std::string&,communique::IConnection*)> requestHandler_;
+		std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> infoHandler_;
+		std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler_;
 
 		void on_open( websocketpp::connection_hdl hdl );
 		void on_close( websocketpp::connection_hdl hdl );
@@ -70,7 +70,7 @@ void communique::Client::connect( const std::string& URI )
 	websocketpp::lib::error_code errorCode;
 	auto pWebPPConnection=pImple_->client_.get_connection( URI, errorCode );
 	if( errorCode.value()!=0 ) throw std::runtime_error( "Unable to get the websocketpp connection - "+errorCode.message() );
-	pImple_->pConnection_.reset( new communique::impl::Connection( pWebPPConnection, pImple_->infoHandler_, pImple_->requestHandler_ ) );
+	pImple_->pConnection_=std::make_shared<communique::impl::Connection>( pWebPPConnection, pImple_->infoHandler_, pImple_->requestHandler_ );
 
 	if( errorCode )
 	{
@@ -137,7 +137,7 @@ void communique::Client::setInfoHandler( std::function<void(const std::string&)>
 	}
 }
 
-void communique::Client::setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler )
+void communique::Client::setInfoHandler( std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> infoHandler )
 {
 	pImple_->infoHandler_=infoHandler;
 	if( pImple_->pConnection_ )
@@ -156,7 +156,7 @@ void communique::Client::setRequestHandler( std::function<std::string(const std:
 	}
 }
 
-void communique::Client::setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler )
+void communique::Client::setRequestHandler( std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler )
 {
 	pImple_->requestHandler_=requestHandler;
 	if( pImple_->pConnection_ )

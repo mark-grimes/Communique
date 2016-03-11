@@ -30,8 +30,8 @@ namespace communique
 		void on_close( websocketpp::connection_hdl hdl );
 		void on_interrupt( websocketpp::connection_hdl hdl );
 
-		std::function<void(const std::string&,communique::IConnection*)> defaultInfoHandler_;
-		std::function<std::string(const std::string&,communique::IConnection*)> defaultRequestHandler_;
+		std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> defaultInfoHandler_;
+		std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> defaultRequestHandler_;
 	};
 }
 
@@ -132,7 +132,7 @@ void communique::Server::setDefaultInfoHandler( std::function<void(const std::st
 	pImple_->defaultInfoHandler_=std::bind( infoHandler, std::placeholders::_1 );
 }
 
-void communique::Server::setDefaultInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler )
+void communique::Server::setDefaultInfoHandler( std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> infoHandler )
 {
 	pImple_->defaultInfoHandler_=infoHandler;
 }
@@ -143,7 +143,7 @@ void communique::Server::setDefaultRequestHandler( std::function<std::string(con
 	pImple_->defaultRequestHandler_=std::bind( requestHandler, std::placeholders::_1 );
 }
 
-void communique::Server::setDefaultRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler )
+void communique::Server::setDefaultRequestHandler( std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler )
 {
 	pImple_->defaultRequestHandler_=requestHandler;
 }

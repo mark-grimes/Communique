@@ -39,9 +39,9 @@ namespace communique
 		virtual void sendRequest( const std::string& message, std::function<void(const std::string&)> responseHandler ) override;
 		virtual void sendInfo( const std::string& message ) override;
 		virtual void setInfoHandler( std::function<void(const std::string&)> infoHandler ) override;
-		virtual void setInfoHandler( std::function<void(const std::string&,communique::IConnection*)> infoHandler ) override;
+		virtual void setInfoHandler( std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> infoHandler ) override;
 		virtual void setRequestHandler( std::function<std::string(const std::string&)> requestHandler ) override;
-		virtual void setRequestHandler( std::function<std::string(const std::string&,communique::IConnection*)> requestHandler ) override;
+		virtual void setRequestHandler( std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler ) override;
 
 		/** @brief Set where error messages are sent */
 		void setErrorLogLocation( std::ostream& outputStream );
