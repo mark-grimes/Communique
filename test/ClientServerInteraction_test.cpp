@@ -345,5 +345,52 @@ SCENARIO( "Test that the Server can communicate with two clients correctly", "[i
 			// Allowing the clients to fully disconnect before the server frees up the port more quickly
 			std::this_thread::sleep_for( testinputs::shortWait );
 		}
+		WHEN( "When I disconnect a client without unsubscribing" )
+		{
+			// Start the server listening and connect both clients
+			REQUIRE_NOTHROW( myServer.listen( ++testinputs::portNumber ) );
+			std::this_thread::sleep_for( testinputs::shortWait );
+			REQUIRE_NOTHROW( client1.connect( "ws://localhost:"+std::to_string(testinputs::portNumber) ) );
+			REQUIRE_NOTHROW( client2.connect( "ws://localhost:"+std::to_string(testinputs::portNumber) ) );
+			// These block until the connection completes, so it's useful for synchronisation
+			CHECK( client1.isConnected() );
+			CHECK( client2.isConnected() );
+
+			// Subscribe both clients
+			std::string client1Response;
+			std::string client2Response;
+			REQUIRE_NOTHROW( client1.sendRequest( "subscribe", [&](const std::string& message){client1Response=message;} ) );
+			REQUIRE_NOTHROW( client2.sendRequest( "subscribe", [&](const std::string& message){client2Response=message;} ) );
+			std::this_thread::sleep_for( testinputs::shortWait );
+			CHECK( client1Response=="ok" );
+			CHECK( client2Response=="ok" );
+
+			// Send a few subscription messages
+			REQUIRE_NOTHROW( sendMessageToSubscribers("1") );
+			REQUIRE_NOTHROW( sendMessageToSubscribers("2") );
+			REQUIRE_NOTHROW( sendMessageToSubscribers("3") );
+
+			// Disconnect one of the clients without telling the server to unsubscribe it
+			std::this_thread::sleep_for( testinputs::shortWait ); // Make sure the first set of messages arrived
+			CHECK_NOTHROW( client2.disconnect() );
+
+			// Send some more messages
+			std::this_thread::sleep_for( testinputs::shortWait ); // Make sure the client fully disconnected
+			CHECK( subscribedClients.size()==2 ); // client2 is still in the list
+			REQUIRE_NOTHROW( sendMessageToSubscribers("4") );
+			CHECK( subscribedClients.size()==1 ); // the sendMessage realised client2 is no longer reachable
+			REQUIRE_NOTHROW( sendMessageToSubscribers("5") );
+			REQUIRE_NOTHROW( sendMessageToSubscribers("6") );
+
+
+			// Make sure the results are as expected
+			std::this_thread::sleep_for( testinputs::shortWait ); // Make sure all messages are processed
+			CHECK( client1SubscribedEvents.str()=="123456" );
+			CHECK( client2SubscribedEvents.str()=="123" );
+
+			CHECK_NOTHROW( client1.disconnect() );
+			// Allowing the clients to fully disconnect before the server frees up the port more quickly.
+			std::this_thread::sleep_for( testinputs::shortWait );
+		}
 	}
 }
