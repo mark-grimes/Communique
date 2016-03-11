@@ -263,11 +263,13 @@ SCENARIO( "Test that the Server can communicate with two clients correctly", "[i
 		auto sendMessageToSubscribers=[&](const std::string& message)
 			{
 				std::lock_guard<std::mutex> lock(subscribedClientsMutex);
-				for( auto iSubscriber=subscribedClients.begin(); iSubscriber!=subscribedClients.end(); ++iSubscriber )
+				auto iSubscriber=subscribedClients.begin();
+				while( iSubscriber!=subscribedClients.end() ) // Can't use a for loop because I'm deleting iterators inside the loop
 				{
 					auto pConnection=iSubscriber->lock();
 					if( pConnection ) REQUIRE_NOTHROW( pConnection->sendInfo(message) );
-					else subscribedClients.erase(iSubscriber); // Connection must have closed, so unsubscribe
+					else subscribedClients.erase(iSubscriber--); // Connection must have closed, so unsubscribe. Post decrement because iSubscriber will be invalidated by the erase.
+					++iSubscriber;
 				}
 			};
 
