@@ -148,10 +148,10 @@ void communique::Server::setDefaultRequestHandler( std::function<std::string(con
 	pImple_->defaultRequestHandler_=requestHandler;
 }
 
-std::vector<std::shared_ptr<communique::IConnection> > communique::Server::currentConnections()
+std::vector<std::weak_ptr<communique::IConnection> > communique::Server::currentConnections()
 {
 	std::lock_guard<std::mutex> myMutex( pImple_->currentConnectionsMutex_ );
-	return std::vector<std::shared_ptr<communique::IConnection> >( pImple_->currentConnections_.begin(), pImple_->currentConnections_.end() );
+	return std::vector<std::weak_ptr<communique::IConnection> >( pImple_->currentConnections_.begin(), pImple_->currentConnections_.end() );
 }
 
 void communique::Server::setErrorLogLocation( std::ostream& outputStream )

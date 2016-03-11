@@ -42,7 +42,7 @@ namespace communique
 		void setDefaultRequestHandler( std::function<std::string(const std::string&)> requestHandler );
 		void setDefaultRequestHandler( std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler );
 
-		std::vector<std::shared_ptr<communique::IConnection> > currentConnections();
+		std::vector<std::weak_ptr<communique::IConnection> > currentConnections();
 
 		/** @brief Set where error messages are sent */
 		void setErrorLogLocation( std::ostream& outputStream );

@@ -71,10 +71,10 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			std::this_thread::sleep_for( testinputs::shortWait );
 
 
-			for( auto& pConnection : myServer.currentConnections() ) pConnection->sendInfo( "This is the first test" );
+			for( auto& pConnection : myServer.currentConnections() ) pConnection.lock()->sendInfo( "This is the first test" );
 			std::this_thread::sleep_for( testinputs::shortWait ); // Allow 1/2 a second for the message to arrive
 			CHECK( concatenatedInfoMessages=="This is the first test" );
-			for( auto& pConnection : myServer.currentConnections() ) pConnection->sendInfo( "This is the second test" );
+			for( auto& pConnection : myServer.currentConnections() ) pConnection.lock()->sendInfo( "This is the second test" );
 			std::this_thread::sleep_for( testinputs::shortWait ); // Allow 1/2 a second for the message to arrive
 			CHECK( concatenatedInfoMessages=="This is the first testThis is the second test" );
 			CHECK( concatenatedRequestMessages=="" );
