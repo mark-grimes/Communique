@@ -107,6 +107,17 @@ SCENARIO( "Test that the Client and Server can interact properly", "[integration
 			std::this_thread::sleep_for( std::chrono::seconds(2) );
 			REQUIRE_NOTHROW( myServer.stop() );
 		}
+	}
+}
+
+SCENARIO( "Test that a Server can handle multiple connections", "[integration][local]" )
+{
+	GIVEN( "A server" )
+	{
+		communique::Server myServer;
+		myServer.setCertificateChainFile( testinputs::testFileDirectory+"server_cert.pem" );
+		myServer.setPrivateKeyFile( testinputs::testFileDirectory+"server_key.pem" );
+
 		WHEN( "I connect and disconnect several clients to a server" )
 		{
 			const size_t numberOfClients=5;
