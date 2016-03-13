@@ -4,6 +4,7 @@
 #include <websocketpp/server.hpp>
 #include <websocketpp/config/asio.hpp>
 #include <list>
+#include <fstream>
 #include "communique/impl/Connection.h"
 #include "communique/impl/TLSHandler.h"
 
@@ -25,7 +26,18 @@ namespace communique
 		mutable std::mutex currentConnectionsMutex_;
 		communique::impl::TLSHandler tlsHandler_;
 
-		void on_http( websocketpp::connection_hdl hdl );
+		//
+		// These functions define the different behaviour when a HTTP connection is made instead
+		// of a websocket one. Only one of them will be active at a time. The options are:
+		//    ignore                - completely ignore the request and don't respond
+		//    acknowledge (default) - just acknowledge the request with a HTTP "ok" response (regardless
+		//                            of the resource). Useful for forcing certificate selection when
+		//                            connecting from a browser.
+		//    simpleFileServer      - serve a file with the filename of the resource request.
+		//
+		void on_http_ignore( websocketpp::connection_hdl hdl );
+		void on_http_acknowledge( websocketpp::connection_hdl hdl );
+		void on_http_simpleFileServer( websocketpp::connection_hdl hdl );
 		void on_open( websocketpp::connection_hdl hdl );
 		void on_close( websocketpp::connection_hdl hdl );
 		void on_interrupt( websocketpp::connection_hdl hdl );
@@ -42,7 +54,7 @@ communique::Server::Server()
 	//pImple_->server_.set_error_channels(websocketpp::log::elevel::all ^ websocketpp::log::elevel::info);
 	pImple_->server_.set_error_channels(websocketpp::log::elevel::none);
 	pImple_->server_.set_tls_init_handler( std::bind( &communique::impl::TLSHandler::on_tls_init, &pImple_->tlsHandler_, std::placeholders::_1 ) );
-	pImple_->server_.set_http_handler( std::bind( &ServerPrivateMembers::on_http, pImple_.get(), std::placeholders::_1 ) );
+	pImple_->server_.set_http_handler( std::bind( &ServerPrivateMembers::on_http_acknowledge, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.init_asio();
 	pImple_->server_.set_open_handler( std::bind( &ServerPrivateMembers::on_open, pImple_.get(), std::placeholders::_1 ) );
 	pImple_->server_.set_close_handler( std::bind( &ServerPrivateMembers::on_close, pImple_.get(), std::placeholders::_1 ) );
@@ -174,11 +186,35 @@ void communique::Server::setAccessLogLevel( uint32_t level )
 	pImple_->server_.set_access_channels(level);
 }
 
-void communique::ServerPrivateMembers::on_http( websocketpp::connection_hdl hdl )
+void communique::ServerPrivateMembers::on_http_ignore( websocketpp::connection_hdl hdl )
+{
+}
+
+void communique::ServerPrivateMembers::on_http_acknowledge( websocketpp::connection_hdl hdl )
 {
 	server_type::connection_ptr con = server_.get_con_from_hdl(hdl);
 	//con->set_body("Hello World!\n");
 	con->set_status(websocketpp::http::status_code::ok);
+}
+
+void communique::ServerPrivateMembers::on_http_simpleFileServer( websocketpp::connection_hdl hdl )
+{
+	server_type::connection_ptr pConnection = server_.get_con_from_hdl(hdl);
+	if( pConnection )
+	{
+		std::ifstream file( pConnection->get_resource() );
+		if( file.is_open() )
+		{
+			std::string fileContents;
+			file.seekg(0, std::ios::end); // Jump to the end to figure out the size of the file
+			fileContents.reserve( file.tellg() ); // Reserve the correct size for the string to store the whole file
+			file.seekg(0, std::ios::beg); // Jump back to the start before reading
+			fileContents.assign( (std::istream_iterator<char>(file)), std::istream_iterator<char>() );
+			pConnection->set_body( fileContents );
+			pConnection->set_status( websocketpp::http::status_code::ok );
+		}
+		else pConnection->set_status( websocketpp::http::status_code::not_found );
+	}
 }
 
 void communique::ServerPrivateMembers::on_open( websocketpp::connection_hdl hdl )
