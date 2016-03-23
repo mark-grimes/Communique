@@ -42,6 +42,7 @@ namespace communique
 		void on_close( websocketpp::connection_hdl hdl );
 		void on_interrupt( websocketpp::connection_hdl hdl );
 
+		std::string simpleFileServerRoot;
 		std::function<void(const std::string&,std::weak_ptr<communique::IConnection>)> defaultInfoHandler_;
 		std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> defaultRequestHandler_;
 	};
@@ -160,6 +161,34 @@ void communique::Server::setDefaultRequestHandler( std::function<std::string(con
 	pImple_->defaultRequestHandler_=requestHandler;
 }
 
+void communique::Server::setHTTPBehaviour( HTTPBehaviour behaviour )
+{
+	switch( behaviour )
+	{
+	case HTTPBehaviour::ignore :
+		pImple_->server_.set_http_handler( std::bind( &ServerPrivateMembers::on_http_ignore, pImple_.get(), std::placeholders::_1 ) );
+		pImple_->server_.get_alog().write( websocketpp::log::alevel::http, "Configured to ignore HTTP requests" );
+		return;
+	case HTTPBehaviour::acknowledge :
+		pImple_->server_.set_http_handler( std::bind( &ServerPrivateMembers::on_http_acknowledge, pImple_.get(), std::placeholders::_1 ) );
+		pImple_->server_.get_alog().write( websocketpp::log::alevel::http, "Configured to acknowledge HTTP requests" );
+		return;
+	case HTTPBehaviour::file_serve :
+		pImple_->server_.set_http_handler( std::bind( &ServerPrivateMembers::on_http_simpleFileServer, pImple_.get(), std::placeholders::_1 ) );
+		pImple_->server_.get_alog().write( websocketpp::log::alevel::http, "Configured to serve files for HTTP requests" );
+		return;
+	default :
+		throw std::runtime_error( "Unknown behaviour requested for HTTP requests" );
+	}
+}
+
+void communique::Server::setFileServeRoot( const std::string& rootDirectory )
+{
+	pImple_->server_.set_http_handler( std::bind( &ServerPrivateMembers::on_http_simpleFileServer, pImple_.get(), std::placeholders::_1 ) );
+	pImple_->simpleFileServerRoot=rootDirectory;
+	pImple_->server_.get_alog().write( websocketpp::log::alevel::http, "Configured to serve files from "+rootDirectory );
+}
+
 std::vector<std::weak_ptr<communique::IConnection> > communique::Server::currentConnections()
 {
 	std::lock_guard<std::mutex> myMutex( pImple_->currentConnectionsMutex_ );
@@ -202,16 +231,22 @@ void communique::ServerPrivateMembers::on_http_simpleFileServer( websocketpp::co
 	server_type::connection_ptr pConnection = server_.get_con_from_hdl(hdl);
 	if( pConnection )
 	{
-		std::ifstream file( pConnection->get_resource() );
+		std::ifstream file( simpleFileServerRoot+pConnection->get_resource(), std::iostream::binary );
 		if( file.is_open() )
 		{
+			std::noskipws(file);
 			std::string fileContents;
 			file.seekg(0, std::ios::end); // Jump to the end to figure out the size of the file
-			fileContents.reserve( file.tellg() ); // Reserve the correct size for the string to store the whole file
+			const int fileSize=file.tellg();
 			file.seekg(0, std::ios::beg); // Jump back to the start before reading
-			fileContents.assign( (std::istream_iterator<char>(file)), std::istream_iterator<char>() );
-			pConnection->set_body( fileContents );
-			pConnection->set_status( websocketpp::http::status_code::ok );
+			if( fileSize>0 )
+			{
+				fileContents.reserve( fileSize ); // Reserve the correct size for the string to store the whole file
+				fileContents.assign( (std::istream_iterator<char>(file)), std::istream_iterator<char>() );
+				pConnection->set_body( fileContents );
+				pConnection->set_status( websocketpp::http::status_code::ok );
+			}
+			else pConnection->set_status( websocketpp::http::status_code::internal_server_error );
 		}
 		else pConnection->set_status( websocketpp::http::status_code::not_found );
 	}

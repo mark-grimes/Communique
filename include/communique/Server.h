@@ -42,6 +42,15 @@ namespace communique
 		void setDefaultRequestHandler( std::function<std::string(const std::string&)> requestHandler );
 		void setDefaultRequestHandler( std::function<std::string(const std::string&,std::weak_ptr<communique::IConnection>)> requestHandler );
 
+		enum class HTTPBehaviour { ignore, acknowledge, file_serve };
+		void setHTTPBehaviour( HTTPBehaviour behaviour );
+		/** @brief If HTTP behaviour is file_serve, this sets the root directory to serve files from.
+		 *
+		 * Calling this automatically switches the HTTP behaviour to file_serve. You can set the directory to
+		 * a relative path although you are strongly encouraged to set absolute paths. Otherwise you may inadvertantly
+		 * start exposing private files if you change the working directory. */
+		void setFileServeRoot( const std::string& rootDirectory );
+
 		std::vector<std::weak_ptr<communique::IConnection> > currentConnections();
 
 		/** @brief Set where error messages are sent */
