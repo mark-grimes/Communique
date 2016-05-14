@@ -9,6 +9,63 @@
 
 #include "testinputs.h"
 
+SCENARIO( "See if a client and server can connect using different types of authentication", "[integration][local][authentication][!mayfail]" )
+{
+	auto setupTestConditions=[](bool serverProvidesAuth, bool serverWantsAuth, bool clientProvidesAuth, bool clientWantsAuth )
+		{
+			communique::Server server;
+			if( serverProvidesAuth )
+			{
+				server.setCertificateChainFile( testinputs::testFileDirectory+"server_cert.pem" );
+				server.setPrivateKeyFile( testinputs::testFileDirectory+"server_key.pem" );
+			}
+			if( serverWantsAuth ) server.setVerifyFile( testinputs::testFileDirectory+"certificateAuthority_cert.pem" );
+
+			communique::Client client;
+			if( clientProvidesAuth )
+			{
+				client.setCertificateChainFile( testinputs::testFileDirectory+"client_cert.pem" );
+				client.setPrivateKeyFile( testinputs::testFileDirectory+"client_key.pem" );
+			}
+			if( clientWantsAuth ) client.setVerifyFile( testinputs::testFileDirectory+"certificateAuthority_cert.pem" );
+
+			INFO( "Server auth provided=" << serverProvidesAuth << ", wanted=" << serverWantsAuth
+					<< ". Client provided=" << clientProvidesAuth << ", wanted=" << clientWantsAuth );
+			bool shouldSucceed=true;
+			if( serverWantsAuth ) shouldSucceed=clientProvidesAuth;
+			if( clientWantsAuth ) shouldSucceed=(serverProvidesAuth && shouldSucceed);
+
+			REQUIRE_NOTHROW( server.listen( ++testinputs::portNumber ) );
+			std::this_thread::sleep_for( testinputs::shortWait );
+
+			REQUIRE_NOTHROW( client.connect( "ws://localhost:"+std::to_string(testinputs::portNumber) ) );
+			std::this_thread::sleep_for( testinputs::shortWait );
+
+			bool wasSuccessful=client.isConnected();
+			wasSuccessful=wasSuccessful && (server.currentConnections().size()==1);
+			CHECK( wasSuccessful==shouldSucceed );
+
+			REQUIRE_NOTHROW( client.disconnect() );
+			REQUIRE_NOTHROW( server.stop() );
+		};
+	WHEN( "I try the different authentication combinations" )
+	{
+		for( const auto serverProvidesAuth : {true,false} )
+		{
+			for( const auto serverWantsAuth : {true,false} )
+			{
+				for( const auto clientProvidesAuth : {true,false} )
+				{
+					for( const auto clientWantsAuth : {true,false} )
+					{
+						setupTestConditions( serverProvidesAuth, serverWantsAuth, clientProvidesAuth, clientWantsAuth );
+					}
+				}
+			}
+		}
+	}
+}
+
 SCENARIO( "Test that the Client and Server can interact properly", "[integration][local]" )
 {
 
@@ -150,7 +207,7 @@ SCENARIO( "Test that a Server can handle multiple connections", "[integration][l
 	}
 }
 
-SCENARIO( "Test that the Server can communicate with two clients correctly", "[integration][local][custom]" )
+SCENARIO( "Test that the Server can communicate with two clients correctly", "[integration][local]" )
 {
 	GIVEN( "A server and two clients" )
 	{
