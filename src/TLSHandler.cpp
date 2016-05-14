@@ -32,7 +32,7 @@ websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> communique::i
 {
 	namespace asio=websocketpp::lib::asio;
 	websocketpp::lib::shared_ptr<asio::ssl::context> pContext( new asio::ssl::context(asio::ssl::context::tlsv12) );
-	pContext->set_options( asio::ssl::context::default_workarounds | asio::ssl::context::no_sslv2 | asio::ssl::context::single_dh_use );
+	pContext->set_options( asio::ssl::context::default_workarounds | asio::ssl::context::no_sslv2 | asio::ssl::context::no_sslv3 | asio::ssl::context::single_dh_use );
 	//pContext->set_password_callback( websocketpp::lib::bind( &server::get_password, this ) );
 	if( !certificateChainFileName_.empty() ) pContext->use_certificate_chain_file( certificateChainFileName_ );
 	if( !privateKeyFileName_.empty() ) pContext->use_private_key_file( privateKeyFileName_, asio::ssl::context::pem );
