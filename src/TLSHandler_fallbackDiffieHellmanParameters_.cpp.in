@@ -1,0 +1,8 @@
+#include "communique/impl/TLSHandler.h"
+
+//
+// Only the Diffie Hellman parameters are defined in this file. All other
+// methods and members are in TLSHandler.cpp.  These is because this string
+// is auto generated at compile time.
+//
+const std::string communique::impl::TLSHandler::fallbackDiffieHellmanParameters_="@DIFFIE_HELLMAN_PARAMS@";

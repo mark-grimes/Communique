@@ -20,7 +20,7 @@ namespace communique
 	public:
 		typedef websocketpp::client<websocketpp::config::asio_tls> client_type;
 
-		ClientPrivateMembers() : tlsHandler_(client_.get_alog()) { /*No operation besides initialiser list*/ }
+		ClientPrivateMembers() : tlsHandler_(client_.get_alog(),false) { /*No operation besides initialiser list*/ }
 		client_type client_;
 		std::thread ioThread_;
 		std::shared_ptr<communique::impl::Connection> pConnection_; // Needs to be shared rather than unique because it's passed to handlers

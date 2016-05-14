@@ -2,8 +2,8 @@
 
 #include "communique/impl/Certificate.h"
 
-communique::impl::TLSHandler::TLSHandler( websocketpp::config::asio::alog_type& logger )
-	: logger_(logger)
+communique::impl::TLSHandler::TLSHandler( websocketpp::config::asio::alog_type& logger, bool isServer )
+	: isServer_(isServer), allowAnonAuthentication_(true), logger_(logger)
 {
 	// No operation besides the initialiser list
 }

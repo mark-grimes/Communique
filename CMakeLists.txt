@@ -67,6 +67,12 @@ include_directories( "${CMAKE_SOURCE_DIR}/include" )
 include_directories( "${CMAKE_SOURCE_DIR}/privateinclude" )
 aux_source_directory( "${CMAKE_SOURCE_DIR}/src" library_sources )
 
+# There are also some auto generated sources
+# TODO - auto generate these parameters at compile time rather than read from a file, so that each installation is different.
+file( READ "${CMAKE_SOURCE_DIR}/test/testData/dh_param_2048.pem" DIFFIE_HELLMAN_PARAMS )
+string( REPLACE "\n" "\\n" DIFFIE_HELLMAN_PARAMS ${DIFFIE_HELLMAN_PARAMS} )
+configure_file( "${PROJECT_SOURCE_DIR}/src/TLSHandler_fallbackDiffieHellmanParameters_.cpp.in" "${PROJECT_BINARY_DIR}/src/TLSHandler_fallbackDiffieHellmanParameters_.cpp" @ONLY )
+list( APPEND library_sources "${PROJECT_BINARY_DIR}/src/TLSHandler_fallbackDiffieHellmanParameters_.cpp" )
 
 add_library( ${PROJECT_NAME} SHARED ${library_sources} )
 add_dependencies( ${PROJECT_NAME} websocketpp ) # Make sure WebSocket++ is downloaded before trying to build

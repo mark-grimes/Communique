@@ -19,7 +19,7 @@ namespace communique
 	public:
 		typedef websocketpp::server<websocketpp::config::asio_tls> server_type;
 
-		ServerPrivateMembers() : tlsHandler_(server_.get_alog()) { /*No operation besides initialiser list*/ }
+		ServerPrivateMembers() : tlsHandler_(server_.get_alog(),true) { /*No operation besides initialiser list*/ }
 		server_type server_;
 		std::thread ioThread_;
 		std::list< std::shared_ptr<communique::impl::Connection> > currentConnections_;
