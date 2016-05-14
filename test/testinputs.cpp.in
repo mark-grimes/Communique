@@ -2,6 +2,6 @@
 
 size_t testinputs::portNumber=9108;
 const size_t testinputs::browserTestPortNumber=9002;
-const std::chrono::milliseconds testinputs::shortWait=std::chrono::milliseconds(50);
+const std::chrono::milliseconds testinputs::shortWait=std::chrono::milliseconds(100);
 const std::string testinputs::testFileDirectory="@CMAKE_SOURCE_DIR@/test/testData/";
 
