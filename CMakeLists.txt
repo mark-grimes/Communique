@@ -41,7 +41,6 @@ else()
 	# Find and add boost to the include directories
 	#
 	set( Boost_USE_MULTITHREADED )
-	set( Boost_USE_STATIC_LIBS ON )
 	find_package( Boost REQUIRED COMPONENTS system )
 	#if( NOT Boost_FOUND )
 	#	message( FATAL_ERROR "Boost wasn't found. If boost is in a non standard path try adding "
