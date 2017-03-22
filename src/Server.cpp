@@ -71,23 +71,26 @@ communique::Server::~Server()
 	catch(...) { /* Make sure no exceptions propagate out */ }
 }
 
-bool communique::Server::listen( size_t port )
+bool communique::Server::listen( size_t port, std::error_code& error )
 {
 	try
 	{
 		if( pImple_->ioThread_.joinable() ) stop(); // If already running stop the current IO
 
-		websocketpp::lib::error_code errorCode;
 		websocketpp::lib::asio::error_code underlyingErrorCode;
-		pImple_->server_.listen(port,errorCode,&underlyingErrorCode);
-		if( errorCode )
+		pImple_->server_.listen(port,error,&underlyingErrorCode);
+		if( error )
 		{
-			std::string errorMessage="Communique server listen error: "+errorCode.message();
+			std::string errorMessage="Communique server listen error: "+error.message();
 			if( underlyingErrorCode ) errorMessage+=" ("+underlyingErrorCode.message()+")";
-			throw std::runtime_error( errorMessage );
+			std::cout << errorMessage << std::endl;
+
+			if( underlyingErrorCode ) error=underlyingErrorCode;
+			return false;
 		}
 
-		pImple_->server_.start_accept();
+		pImple_->server_.start_accept( error );
+		if( error ) return false;
 
 		pImple_->ioThread_=std::thread( &ServerPrivateMembers::server_type::run, &pImple_->server_ );
 
@@ -103,6 +106,13 @@ bool communique::Server::listen( size_t port )
 	}
 }
 
+bool communique::Server::listen( size_t port )
+{
+	std::error_code error;
+	bool result=listen( port, error );
+	if( error ) throw std::system_error( error, "Communique server listen error " );
+	return result;
+}
 void communique::Server::stop()
 {
 	if( pImple_->server_.is_listening() ) pImple_->server_.stop_listening();

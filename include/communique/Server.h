@@ -4,6 +4,7 @@
 #include <memory>
 #include <functional>
 #include <vector>
+#include <system_error>
 
 //
 // Forward declarations
@@ -30,6 +31,7 @@ namespace communique
 		Server();
 		~Server();
 
+		bool listen( size_t port, std::error_code& error );
 		bool listen( size_t port );
 		void stop();
 		void setCertificateChainFile( const std::string& filename );
