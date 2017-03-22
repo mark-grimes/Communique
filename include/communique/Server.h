@@ -33,6 +33,8 @@ namespace communique
 
 		bool listen( size_t port, std::error_code& error );
 		bool listen( size_t port );
+		bool listen( const std::string& address, size_t port, std::error_code& error );
+		bool listen( const std::string& address, size_t port );
 		void stop();
 		void setCertificateChainFile( const std::string& filename );
 		void setPrivateKeyFile( const std::string& filename );
