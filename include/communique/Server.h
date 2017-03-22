@@ -36,6 +36,7 @@ namespace communique
 		bool listen( const std::string& address, size_t port, std::error_code& error );
 		bool listen( const std::string& address, size_t port );
 		void stop();
+		void block();
 		void setCertificateChainFile( const std::string& filename );
 		void setPrivateKeyFile( const std::string& filename );
 		void setVerifyFile( const std::string& filename );

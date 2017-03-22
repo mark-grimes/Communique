@@ -173,6 +173,11 @@ void communique::Server::stop()
 	if( pImple_->ioThread_.joinable() ) pImple_->ioThread_.join();
 }
 
+void communique::Server::block()
+{
+	if( pImple_->ioThread_.joinable() ) pImple_->ioThread_.join();
+}
+
 void communique::Server::setCertificateChainFile( const std::string& filename )
 {
 	pImple_->tlsHandler_.setCertificateChainFile(filename);
